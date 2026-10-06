@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { LayoutDashboard, PenSquare, Smartphone, FolderOpen, LineChart, LogOut, Sparkles, User } from "lucide-react";
+import { LayoutDashboard, PenSquare, Smartphone, FolderOpen, LineChart, LogOut, Sparkles, User, ShieldCheck, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,29 @@ const TABS = [
   { to: "/analise", label: "Análise & Conexão", icon: LineChart },
 ] as const;
 
+export const ROLE_LABEL: Record<string, string> = { client: "Cliente", admin: "Adm", master: "Adm Master" };
+
+export function useAccess() {
+  return useQuery({
+    queryKey: ["access"],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("my_access");
+      return (data?.[0] ?? { role: "client", approved: false }) as { role: string; approved: boolean };
+    },
+  });
+}
+
 function AppLayout() {
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
+  const qc = useQueryClient();
+  const { data: access, isLoading } = useAccess();
 
   async function logout() {
+    await qc.cancelQueries();
+    qc.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/" });
+    navigate({ to: "/", replace: true });
   }
 
   return (
@@ -44,6 +60,7 @@ function AppLayout() {
             Contatus AI
           </Link>
           <div className="ml-auto flex items-center gap-1">
+            {access && <span className="mr-2 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs text-primary">{ROLE_LABEL[access.role]}</span>}
             <Button variant="ghost" size="sm" onClick={() => setProfileOpen(true)}><User /> Perfil</Button>
             <Button variant="ghost" size="sm" onClick={logout}><LogOut /> Sair</Button>
           </div>
@@ -61,11 +78,28 @@ function AppLayout() {
                 {t.label}
               </Link>
             ))}
+            {access?.role === "master" && (
+              <Link
+                to="/permissoes"
+                className="flex items-center gap-2 border-b-2 border-transparent px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                activeProps={{ className: "!border-primary !text-foreground" }}
+              >
+                <ShieldCheck className="h-4 w-4" /> Permissões
+              </Link>
+            )}
           </div>
         </nav>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-8">
-        <Outlet />
+        {isLoading ? null : access?.approved ? (
+          <Outlet />
+        ) : (
+          <div className="glass mx-auto max-w-md rounded-2xl p-8 text-center">
+            <Clock className="mx-auto h-10 w-10 text-warning" />
+            <h1 className="mt-4 text-2xl font-semibold">Aguardando aprovação</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Seu cadastro foi recebido. Um Adm Master precisa liberar seu acesso.</p>
+          </div>
+        )}
       </main>
       <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
     </div>
@@ -87,11 +121,10 @@ function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
 
   async function save() {
     if (!data) return;
-    const { error } = await supabase.from("profiles").upsert({
-      id: data.id,
-      full_name: name ?? data.full_name,
-      agency_name: agency ?? data.agency_name,
-    });
+    const { error } = await supabase
+      .from("profiles")
+      .update({ full_name: name ?? data.full_name, agency_name: agency ?? data.agency_name })
+      .eq("id", data.id);
     if (error) return toast.error(error.message);
     toast.success("Perfil salvo");
     qc.invalidateQueries({ queryKey: ["profile"] });
