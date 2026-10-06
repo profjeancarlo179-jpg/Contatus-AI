@@ -92,6 +92,12 @@ function CentralFaturas() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("todas");
   const [view, setView] = useState("todas");
+  const [month, setMonth] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
+  const invoiceDate = (i: Invoice) => (i.due_date ? i.due_date.slice(0, 10) : (i.paid_at || i.created_at || "").slice(0, 10));
+  const monthOptions = Array.from(new Set(invoices.map(invoiceDate).filter(Boolean).map((d) => d.slice(0, 7)))).sort();
 
   const nameOf = (id: string) => {
     const r = regOfUser(regs, id);
@@ -108,6 +114,9 @@ function CentralFaturas() {
     if (status !== "todas" && i.status !== status) return false;
     if (view === "liberadas" && !i.released) return false;
     if (view === "rascunho" && i.released) return false;
+    if (month && invoiceDate(i).slice(0, 7) !== month) return false;
+    if (from && invoiceDate(i) < from) return false;
+    if (to && invoiceDate(i) > to) return false;
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       const hay = `${i.description} ${nameOf(i.client_id)} ${i.due_date ?? ""} ${i.notes ?? ""}`.toLowerCase();
@@ -172,6 +181,21 @@ function CentralFaturas() {
             <SelectItem value="rascunho">Rascunho</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={month} onValueChange={setMonth}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Mês" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os meses</SelectItem>
+            {monthOptions.map((m) => {
+              const [y, mm] = m.split("-");
+              return <SelectItem key={m} value={m}>{new Date(Number(y), Number(mm) - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</SelectItem>;
+            })}
+          </SelectContent>
+        </Select>
+        <Input type="date" className="w-40" value={from} onChange={(e) => setFrom(e.target.value)} aria-label="Data inicial" />
+        <Input type="date" className="w-40" value={to} onChange={(e) => setTo(e.target.value)} aria-label="Data final" />
+        {(month || from || to) && (
+          <Button variant="ghost" size="sm" onClick={() => { setMonth("todos"); setFrom(""); setTo(""); }}>Limpar</Button>
+        )}
       </div>
 
       {isLoading && <Loader2 className="animate-spin" />}
