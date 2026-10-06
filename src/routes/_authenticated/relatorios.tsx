@@ -433,6 +433,60 @@ function DashboardView({ archived = false }: { archived?: boolean }) {
 
   if (reports.length === 0) return <div className="glass rounded-xl p-10 text-center text-muted-foreground">{archived ? "Nenhum relatório liberado ainda." : "Nenhum relatório em rascunho. Gere um na aba Adm."}</div>;
 
+  // Arquivos: primeiro escolhe o relatório liberado; ao clicar, ele abre completo.
+  if (archived) {
+    const open = reports.find((r) => r.id === openId);
+    if (open) {
+      return (
+        <div className="space-y-4">
+          <Button variant="secondary" size="sm" onClick={() => setOpenId(null)}>← Voltar para a lista</Button>
+          <ReportCard
+            r={open}
+            clientName={nameOf(open.client_id)}
+            actions={
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs text-success">Liberado</span>
+                <Button size="sm" variant="secondary" onClick={() => { toggle(open); setOpenId(null); }}><EyeOff /> Ocultar</Button>
+                <Button size="icon" variant="ghost" onClick={() => { remove(open); setOpenId(null); }}><Trash2 /></Button>
+              </div>
+            }
+          />
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-6">
+        {groups.map(([cid, rs]) => (
+          <div key={cid} className="space-y-2">
+            <div className="flex flex-wrap items-center gap-3 border-b border-border pb-2">
+              <h2 className="font-display text-xl font-semibold">{nameOf(cid) || "Cliente removido"}</h2>
+              <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs text-primary">{rs.length} relatório(s)</span>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {rs.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => setOpenId(r.id)}
+                  className="glass flex items-center gap-3 rounded-xl p-4 text-left transition hover:border-primary/50"
+                >
+                  <FileBarChart className="h-5 w-5 shrink-0 text-primary" />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-semibold">{r.title}</div>
+                    <div className="truncate text-xs text-muted-foreground">
+                      {r.network}{r.period ? ` · ${r.period}` : ""} · {new Date(r.created_at).toLocaleDateString("pt-BR")}
+                    </div>
+                  </div>
+                  <span className="rounded-full bg-success/15 px-2 py-0.5 text-xs text-success">Liberado</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {groups.map(([cid, rs]) => (
