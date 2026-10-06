@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ServicesCatalog } from "@/components/ServicesCatalog";
-import { InvoiceCard, type Invoice } from "@/components/InvoiceCard";
+import { InvoiceCard, refLabels, type Invoice } from "@/components/InvoiceCard";
 import { ContractsTab } from "@/components/ContractsTab";
 import { InvoicePreviewButton } from "@/components/InvoicePreview";
 import { Search } from "lucide-react";
@@ -119,6 +119,7 @@ function CentralFaturas() {
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   const open = invoices.filter((i) => i.status === "pendente");
   const paid = invoices.filter((i) => i.status === "paga");
+  const refs = refLabels(invoices);
 
   async function toggle(i: Invoice) {
     const { error } = await supabase.from("invoices").update({ released: !i.released }).eq("id", i.id);
@@ -178,7 +179,7 @@ function CentralFaturas() {
 
       <div className="space-y-3">
         {filtered.map((i) => (
-          <InvoiceCard key={i.id} i={i} clientName={nameOf(i.client_id)} actions={
+          <InvoiceCard key={i.id} i={i} clientName={nameOf(i.client_id)} refLabel={refs[i.id]} actions={
             <>
               <InvoicePreviewButton i={i} clientName={nameOf(i.client_id)} clientDoc={docOf(i.client_id)} />
               <Button size="sm" variant="outline" onClick={() => toggle(i)}>{i.released ? <><EyeOff /> Esconder</> : <><Eye /> Liberar</>}</Button>
@@ -221,6 +222,7 @@ function GerarFatura() {
   const [startMonth, setStartMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [months, setMonths] = useState("12");
   const [dueDay, setDueDay] = useState("5");
+  const refs = refLabels(invoices);
   const nameOf = (id: string) => { const r = regOfUser(regs, id); if (r) return r.company_name || r.name; const c = clients.find((x) => x.id === id); return c?.full_name || c?.email || "Cliente"; };
   const docOf = (id: string) => { const r = regOfUser(regs, id); return r?.company_cnpj || r?.resp_document || undefined; };
   const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -328,7 +330,7 @@ function GerarFatura() {
         <h2 className="text-lg font-semibold">Faturas geradas</h2>
         {invoices.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma fatura ainda.</p>}
         {invoices.map((i) => (
-          <InvoiceCard key={i.id} i={i} clientName={nameOf(i.client_id)} actions={
+          <InvoiceCard key={i.id} i={i} clientName={nameOf(i.client_id)} refLabel={refs[i.id]} actions={
             <>
               <InvoicePreviewButton i={i} clientName={nameOf(i.client_id)} clientDoc={docOf(i.client_id)} />
               <Select value={i.status} onValueChange={(v) => setStatus(i, v)}>
@@ -363,6 +365,7 @@ function BaixaFatura() {
       return (data ?? []) as Invoice[];
     },
   });
+  const refs = refLabels(invoices);
   const [dates, setDates] = useState<Record<string, string>>({});
   const name = (id: string) => { const c = clients.find((x) => x.id === id); return c?.full_name || c?.email || "Cliente"; };
   const today = new Date().toISOString().slice(0, 10);
@@ -402,7 +405,7 @@ function BaixaFatura() {
         <h2 className="font-semibold">Aguardando pagamento ({open.length})</h2>
         {open.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma fatura em aberto.</p>}
         {open.map((i) => (
-          <InvoiceCard key={i.id} i={i} clientName={name(i.client_id)} actions={<>
+          <InvoiceCard key={i.id} i={i} clientName={name(i.client_id)} refLabel={refs[i.id]} actions={<>
             <Label className="text-xs">Data do pagamento</Label>
             <Input type="date" className="w-40" value={dates[i.id] || today} onChange={(e) => setDates({ ...dates, [i.id]: e.target.value })} />
             <Button variant="neon" size="sm" onClick={() => pay(i)}>Dar baixa</Button>
@@ -413,7 +416,7 @@ function BaixaFatura() {
         <h2 className="font-semibold">Pagas ({paid.length})</h2>
         {paid.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma fatura paga ainda.</p>}
         {paid.map((i) => (
-          <InvoiceCard key={i.id} i={i} clientName={name(i.client_id)} actions={<Button variant="ghost" size="sm" onClick={() => pay(i, true)}>Desfazer baixa</Button>} />
+          <InvoiceCard key={i.id} i={i} clientName={name(i.client_id)} refLabel={refs[i.id]} actions={<Button variant="ghost" size="sm" onClick={() => pay(i, true)}>Desfazer baixa</Button>} />
         ))}
       </div>
       <Dialog open={!!target} onOpenChange={(o) => !o && setTarget(null)}>

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { InvoiceCard, type Invoice } from "@/components/InvoiceCard";
+import { InvoiceCard, refLabels, type Invoice } from "@/components/InvoiceCard";
 import { InvoicePrint, printInvoicePaper, usePaymentSettings } from "@/components/InvoicePrint";
 
 export const Route = createFileRoute("/_authenticated/fatura")({
