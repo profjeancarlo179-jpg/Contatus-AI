@@ -8,36 +8,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { contractTemplate, EMPTY_CONTRACT, type ContractFields } from "@/lib/contract-template";
 
-type Client = { id: string; email: string | null; full_name: string | null };
+type Client = { id: string; name: string; resp_name: string | null; resp_email: string | null; resp_phone: string | null; resp_document: string | null; segment: string | null };
 type Contract = { id: string; client_name: string; title: string; status: string; share_token: string; signed_name: string | null; signed_at: string | null; created_at: string };
-
-const TEMPLATE = (name: string) => `CONTRATO DE PRESTAÇÃO DE SERVIÇOS
-
-CONTRATANTE: ${name || "[nome do cliente]"}, CPF/CNPJ: [documento].
-CONTRATADA: Contatus AI.
-
-1. OBJETO
-A CONTRATADA prestará serviços de [descreva os serviços].
-
-2. VALOR E PAGAMENTO
-O valor mensal é de R$ [valor], com vencimento todo dia [dia].
-
-3. PRAZO
-Este contrato tem vigência de [prazo] a partir da assinatura.
-
-4. RESCISÃO
-Qualquer parte pode rescindir com aviso prévio de 30 dias.
-
-Ao assinar digitalmente, as partes concordam com todos os termos acima.`;
+type Item = { id: string; kind: string; name: string; price: number; item_ids: string[] };
 
 export const contractUrl = (token: string) => `https://contatus-ai.lovable.app/c/${token}`;
 
 export function ContractsTab() {
   const qc = useQueryClient();
   const { data: clients = [] } = useQuery({
-    queryKey: ["list_clients"],
-    queryFn: async () => ((await supabase.rpc("list_clients")).data ?? []) as Client[],
+    queryKey: ["clients-contract"],
+    queryFn: async () => ((await supabase.from("clients").select("id,name,resp_name,resp_email,resp_phone,resp_document,segment").order("name")).data ?? []) as Client[],
+  });
+  const { data: catalog = [] } = useQuery({
+    queryKey: ["catalog_items"],
+    queryFn: async () => ((await supabase.from("catalog_items").select("*")).data ?? []) as Item[],
   });
   const { data: contracts = [] } = useQuery({
     queryKey: ["contracts"],
@@ -48,26 +35,36 @@ export function ContractsTab() {
     },
   });
   const [clientId, setClientId] = useState("");
-  const [clientName, setClientName] = useState("");
-  const [title, setTitle] = useState("Contrato de prestação de serviços");
-  const [body, setBody] = useState(TEMPLATE(""));
+  const [f, setF] = useState<ContractFields>(EMPTY_CONTRACT);
+  const [title, setTitle] = useState("Contrato de Prestação de Serviços");
+  const [body, setBody] = useState(contractTemplate(EMPTY_CONTRACT));
   const [saving, setSaving] = useState(false);
 
+  function update(patch: Partial<ContractFields>) {
+    const next = { ...f, ...patch };
+    setF(next);
+    setBody(contractTemplate(next));
+  }
   function pickClient(id: string) {
     setClientId(id);
     const c = clients.find((x) => x.id === id);
-    const n = c?.full_name || c?.email || "";
-    setClientName(n);
-    setBody((b) => b.replace(/CONTRATANTE: [^,]*,/, `CONTRATANTE: ${n},`));
+    if (c) update({ name: c.resp_name || c.name, company: c.name, document: c.resp_document || "", email: c.resp_email || "", phone: c.resp_phone || "" });
+  }
+  function pickPackage(id: string) {
+    const p = catalog.find((x) => x.id === id);
+    if (!p) return;
+    const names = p.kind === "pacote" ? catalog.filter((x) => p.item_ids?.includes(x.id)).map((x) => x.name).join(", ") : p.name;
+    const amt = Number(p.price).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+    const pen = (Number(p.price) * 0.1).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+    update({ packageName: p.name, amount: amt, items: names, penalty: pen });
   }
 
   async function create() {
-    if (!clientName.trim()) return toast.error("Informe o nome do cliente");
+    if (!f.name.trim()) return toast.error("Informe o nome do contratante");
     if (!title.trim() || !body.trim()) return toast.error("Preencha título e texto");
     setSaving(true);
-    const c = clients.find((x) => x.id === clientId);
     const { data, error } = await (supabase as any).from("contracts").insert({
-      client_id: clientId || null, client_name: clientName.trim(), client_email: c?.email ?? null, title: title.trim(), body,
+      client_id: null, client_name: f.name.trim(), client_email: f.email.trim() || null, title: title.trim(), body,
     }).select("share_token").single();
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -81,21 +78,47 @@ export function ContractsTab() {
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["contracts"] });
   }
+  const field = (k: keyof ContractFields, label: string, ph = "") => (
+    <div className="space-y-1.5"><Label>{label}</Label><Input placeholder={ph} value={f[k]} onChange={(e) => update({ [k]: e.target.value })} /></div>
+  );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,520px)_1fr]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,560px)_1fr]">
       <div className="glass space-y-4 rounded-xl p-6">
         <h2 className="flex items-center gap-2 text-lg font-semibold"><FileSignature className="h-5 w-5 text-primary" /> Gerar contrato</h2>
         <div className="space-y-1.5">
-          <Label>Cliente cadastrado (opcional)</Label>
+          <Label>Cliente cadastrado (preenche os dados)</Label>
           <Select value={clientId} onValueChange={pickClient}>
             <SelectTrigger><SelectValue placeholder="Escolha o cliente" /></SelectTrigger>
-            <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>)}</SelectContent>
+            <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5"><Label>Nome do cliente</Label><Input value={clientName} onChange={(e) => setClientName(e.target.value)} /></div>
+        <p className="text-sm font-semibold text-primary">Contratante</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {field("name", "Nome", "Anderson Gonçalves")}
+          {field("company", "Razão social")}
+          {field("document", "CPF/CNPJ")}
+          {field("phone", "Telefone")}
+          {field("email", "E-mail")}
+          {field("qualification", "Nacionalidade • Profissão")}
+        </div>
+        {field("address", "Endereço", "Rua, nº, bairro, cidade, UF")}
+        <p className="text-sm font-semibold text-primary">Objeto do contrato</p>
+        <div className="space-y-1.5">
+          <Label>Pacote / serviço do catálogo</Label>
+          <Select onValueChange={pickPackage}>
+            <SelectTrigger><SelectValue placeholder="Escolha (opcional)" /></SelectTrigger>
+            <SelectContent>{catalog.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {field("packageName", "Pacote")}
+          {field("amount", "Valor total (R$)", "550,00")}
+          {field("penalty", "Multa rescisória (R$)", "55,00")}
+        </div>
+        <div className="space-y-1.5"><Label>Itens inclusos</Label><Textarea rows={2} value={f.items} onChange={(e) => update({ items: e.target.value })} /></div>
         <div className="space-y-1.5"><Label>Título</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} /></div>
-        <div className="space-y-1.5"><Label>Texto do contrato</Label><Textarea rows={16} value={body} onChange={(e) => setBody(e.target.value)} /></div>
+        <div className="space-y-1.5"><Label>Texto completo (pode ajustar)</Label><Textarea rows={12} value={body} onChange={(e) => setBody(e.target.value)} /></div>
         <Button variant="neon" disabled={saving} onClick={create}>{saving && <Loader2 className="animate-spin" />} Gerar link de assinatura</Button>
       </div>
       <div className="space-y-3">
