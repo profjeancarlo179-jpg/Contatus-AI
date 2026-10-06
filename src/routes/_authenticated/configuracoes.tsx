@@ -3,7 +3,7 @@ import { Clapperboard, ImageIcon, Instagram, KeyRound, Sparkles } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail } from "lucide-react";
-import { isStaff, useAccess } from "@/lib/access";
+import { isStaff, useAccess, useSubTabs } from "@/lib/access";
 import { PaymentSettingsForm } from "@/components/PaymentSettingsForm";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
