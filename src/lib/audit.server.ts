@@ -33,6 +33,7 @@ Observações: ${input.notes || "nenhuma"}
 
 Retorne nota, resumo, pontos fortes, pontos fracos, sugestão de nova bio, 4-6 pilares de conteúdo, plano de postagem semanal e 5 ações rápidas.`,
     output: Output.object({ schema: auditSchema }),
+    onError: (e) => console.error("audit stream error", e),
     providerOptions: {
       openai: {
         store: false,
@@ -43,6 +44,6 @@ Retorne nota, resumo, pontos fortes, pontos fracos, sugestão de nova bio, 4-6 p
       },
     },
   });
-  console.log("DBG", await result.finishReason, (await result.text).slice(0,300));
+
   return (await result.output) as AuditResult;
 }
