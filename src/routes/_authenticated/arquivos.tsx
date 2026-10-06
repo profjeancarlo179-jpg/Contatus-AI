@@ -58,8 +58,10 @@ function Arquivos() {
       <Tabs defaultValue="arquivos">
         <TabsList>
           <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
+          <TabsTrigger value="pendentes">Arte pendente de aprovação</TabsTrigger>
           <TabsTrigger value="aprovadas">Artes aprovadas</TabsTrigger>
         </TabsList>
+        <TabsContent value="pendentes" className="mt-6"><PendingTab data={data} /></TabsContent>
         <TabsContent value="aprovadas" className="mt-6"><Approved data={data} /></TabsContent>
         <TabsContent value="arquivos" className="mt-6 space-y-6">
       <div className="flex flex-wrap gap-2">
