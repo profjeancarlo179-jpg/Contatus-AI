@@ -53,6 +53,7 @@ export type Database = {
       bio_pages: {
         Row: {
           appearance: Json
+          client_id: string | null
           created_at: string
           description: string
           id: string
@@ -67,6 +68,7 @@ export type Database = {
         }
         Insert: {
           appearance?: Json
+          client_id?: string | null
           created_at?: string
           description?: string
           id?: string
@@ -81,6 +83,7 @@ export type Database = {
         }
         Update: {
           appearance?: Json
+          client_id?: string | null
           created_at?: string
           description?: string
           id?: string
@@ -94,6 +97,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bio_pages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bio_pages_user_id_fkey"
             columns: ["user_id"]

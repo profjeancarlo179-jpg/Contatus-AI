@@ -34,9 +34,15 @@ function ProfileLinks() {
     if (!session.user) throw new Error("Entre novamente");
     const { data, error } = await supabase.from("bio_pages").select("*").eq("user_id", session.user.id).order("created_at", { ascending: false });
     if (error) throw error;
-    return (data ?? []) as unknown as Bio[];
+    return (data ?? []).map(d => ({ ...d, clientId: (d as { client_id?: string | null }).client_id ?? null })) as unknown as Bio[];
   } });
   const [tab, setTab] = useState<"novo" | "editar" | "arquivo" | "redirect">("novo");
+  const { data: clients = [] } = useQuery({ queryKey: ["bio-clients"], queryFn: async () => {
+    const { data, error } = await supabase.from("clients").select("id, name").order("name");
+    if (error) return [] as { id: string; name: string }[];
+    return data;
+  } });
+  const clientLabel = (id?: string | null) => clients.find(x => x.id === id)?.name ?? null;
   const editId = selected;
   const current = pages.find(p => p.id === editId);
   const refresh = () => qc.invalidateQueries({ queryKey: ["bio-pages"] });
@@ -52,20 +58,20 @@ function ProfileLinks() {
     <h1 className="text-3xl font-bold">Link do perfil</h1>
     <div className="flex flex-wrap gap-2 border-b border-border pb-2">{tabs.filter(([k]) => sub.can(k)).map(([k, l]) => <Button key={k} variant={tab === k ? "secondary" : "ghost"} onClick={() => { setTab(k); if (k === "editar") setSelected("new"); }}>{l}</Button>)}</div>
     {isLoading ? <Loader2 className="animate-spin" /> : error ? <p className="text-destructive">Não foi possível carregar suas páginas.</p> : tab === "novo" ? (
-      <BioEditor key="new" onSaved={async id => { await refresh(); setSelected(id); setTab("editar"); }} onDeleted={async () => { await refresh(); }} />
+      <BioEditor key="new" clients={clients} onSaved={async id => { await refresh(); setSelected(id); setTab("editar"); }} onDeleted={async () => { await refresh(); }} />
     ) : tab === "editar" ? (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página pronta ainda. Crie uma na aba Novo.</p> : !current ? <>
       <p className="text-muted-foreground">Escolha o perfil que deseja editar:</p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{pages.map(p => <div key={p.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
         {p.photo ? <img src={p.photo} alt="" className="h-12 w-12 rounded-full object-cover" /> : <div className="grid h-12 w-12 place-items-center rounded-full bg-secondary"><Link2 /></div>}
-        <div className="min-w-0 flex-1"><p className="truncate font-semibold">{p.name}</p><p className={`text-sm ${p.published ? "text-success" : "text-muted-foreground"}`}>{p.published ? "Publicada" : "Rascunho"}</p></div>
+        <div className="min-w-0 flex-1"><p className="truncate font-semibold">{p.name}</p>{clientLabel(p.clientId) && <p className="truncate text-xs text-muted-foreground">{clientLabel(p.clientId)}</p>}<p className={`text-sm ${p.published ? "text-success" : "text-muted-foreground"}`}>{p.published ? "Publicada" : "Rascunho"}</p></div>
         <Button variant="neon" onClick={() => setSelected(p.id!)}>Editar</Button>
       </div>)}</div>
     </> : <>
       <Button variant="ghost" onClick={() => setSelected("new")}><ArrowLeft /> Escolher outro perfil</Button>
-      <BioEditor key={editId} initial={current} onSaved={async id => { await refresh(); setSelected(id); }} onDeleted={async () => { setSelected("new"); await refresh(); }} />
+      <BioEditor key={editId} initial={current} clients={clients} onSaved={async id => { await refresh(); setSelected(id); }} onDeleted={async () => { setSelected("new"); await refresh(); }} />
     </>) : tab === "arquivo" ? (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página salva.</p> :
       <div className="space-y-3">{(pages as (Bio & { paused?: boolean })[]).map(p => <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
-        <div><p className="font-semibold">{p.name}</p><p className="text-sm text-muted-foreground">/b/{p.slug} · {p.paused ? <span className="text-destructive">Pausada</span> : p.published ? <span className="text-success">Pública</span> : "Rascunho"}</p></div>
+        <div><p className="font-semibold">{p.name}</p><p className="text-sm text-muted-foreground">/b/{p.slug}{clientLabel(p.clientId) ? ` · ${clientLabel(p.clientId)}` : ""} · {p.paused ? <span className="text-destructive">Pausada</span> : p.published ? <span className="text-success">Pública</span> : "Rascunho"}</p></div>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => { setSelected(p.id!); setTab("editar"); }}>Editar</Button>
           <Button variant={p.paused ? "neon" : "destructive"} onClick={() => togglePause(p)}>{p.paused ? <><Play /> Reativar</> : <><Pause /> Pausar</>}</Button>
@@ -91,7 +97,7 @@ function RedirectPreview({ pages }: { pages: Bio[] }) {
     </div>
   </div>;
 }
-function BioEditor({ initial, onSaved, onDeleted }: { initial?: Bio; onSaved: (id: string) => Promise<void>; onDeleted: () => Promise<void> }) {
+function BioEditor({ initial, clients, onSaved, onDeleted }: { initial?: Bio; clients: { id: string; name: string }[]; onSaved: (id: string) => Promise<void>; onDeleted: () => Promise<void> }) {
   const [bio, setBio] = useState<Bio>(initial ?? empty());
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -104,7 +110,7 @@ function BioEditor({ initial, onSaved, onDeleted }: { initial?: Bio; onSaved: (i
     if (bio.published && !bio.links.some(l => l.enabled)) return toast.error("Adicione pelo menos um link ativo para publicar");
     setBusy(true);
     try {
-      const payload = { name: bio.name.trim(), description: bio.description, photo: bio.photo, slug: bio.slug, links: bio.links, published: bio.published, appearance: { ...bio.appearance } };
+      const payload = { name: bio.name.trim(), description: bio.description, photo: bio.photo, slug: bio.slug, links: bio.links, published: bio.published, appearance: { ...bio.appearance }, client_id: bio.clientId ?? null };
       const res = initial?.id ? await supabase.from("bio_pages").update(payload).eq("id", initial.id).select("id").single() : await supabase.from("bio_pages").insert(payload).select("id").single();
       if (res.error) throw res.error;
       await onSaved(res.data.id); setDirty(false); toast.success(bio.published ? "Página publicada" : "Rascunho salvo");
@@ -120,6 +126,10 @@ function BioEditor({ initial, onSaved, onDeleted }: { initial?: Bio; onSaved: (i
           <Button variant="outline" asChild><label className="cursor-pointer"><Upload />{uploading ? "Carregando…" : "Escolher foto"}<input aria-label="Foto do perfil" type="file" accept="image/*" className="hidden" disabled={uploading} onChange={async e => { const file = e.target.files?.[0]; if (!file) return; setUploading(true); try { change({ photo: await bioPhoto(file) }); } catch (err) { toast.error(err instanceof Error ? err.message : "Falha na foto"); } finally { setUploading(false); } }} /></label></Button>
           {bio.photo && <Button variant="ghost" size="icon" aria-label="Remover foto" title="Remover foto" onClick={() => change({ photo: "" })}><Trash2 /></Button>}
         </div>
+        <div className="space-y-2"><Label htmlFor="bio-client">Cliente vinculado</Label><select id="bio-client" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs" value={bio.clientId ?? ""} onChange={e => { const v = e.target.value || null; change({ clientId: v }); if (!initial && v && !bio.name.trim()) { const c = clients.find(x => x.id === v); if (c) change({ clientId: v, name: c.name }); } }}>
+          <option value="">Nenhum (página sem cliente)</option>
+          {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select></div>
         <div className="space-y-2"><Label htmlFor="bio-name">Nome do perfil</Label><Input id="bio-name" maxLength={100} value={bio.name} onChange={e => change({ name: e.target.value })} /></div>
         <div className="space-y-2"><Label htmlFor="bio-description">Descrição</Label><Textarea id="bio-description" maxLength={500} rows={3} value={bio.description} onChange={e => change({ description: e.target.value })} /></div>
         <div className="space-y-2"><Label htmlFor="bio-slug">Endereço da página</Label><div className="flex min-w-0 items-center gap-2"><span className="shrink-0 text-sm text-muted-foreground">/b/</span><Input id="bio-slug" placeholder="sua-marca" maxLength={40} value={bio.slug} onChange={e => change({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} /></div></div>

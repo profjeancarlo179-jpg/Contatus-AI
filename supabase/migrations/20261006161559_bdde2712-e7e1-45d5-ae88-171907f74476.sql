@@ -1,0 +1,1 @@
+ALTER TABLE public.bio_pages ADD COLUMN IF NOT EXISTS client_id uuid REFERENCES public.clients(id) ON DELETE SET NULL;
