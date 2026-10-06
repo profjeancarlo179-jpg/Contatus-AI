@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, Copy, ExternalLink, Link2, Loader2, Plus, Save, Tra
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BioPreview } from "@/components/BioPreview";
+import { BioSocialsEditor } from "@/components/BioSocials";
 import { BioAppearanceEditor, BioIconPicker } from "@/components/BioAppearance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,6 +76,7 @@ function BioEditor({ initial, onSaved, onDeleted }: { initial?: Bio; onSaved: (i
         <div className="space-y-2"><Label htmlFor="bio-description">Descrição</Label><Textarea id="bio-description" maxLength={500} rows={3} value={bio.description} onChange={e => change({ description: e.target.value })} /></div>
         <div className="space-y-2"><Label htmlFor="bio-slug">Endereço da página</Label><div className="flex min-w-0 items-center gap-2"><span className="shrink-0 text-sm text-muted-foreground">/b/</span><Input id="bio-slug" placeholder="sua-marca" maxLength={40} value={bio.slug} onChange={e => change({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} /></div></div>
       </section>
+      <BioSocialsEditor value={bio.appearance?.socials} onChange={socials => change({ appearance: { ...bio.appearance, socials } })} />
       <BioAppearanceEditor value={bio.appearance} onChange={appearance => change({ appearance })} />
       <section className="space-y-4"><div className="flex items-center justify-between"><h2 className="font-semibold">Links</h2><Button variant="outline" size="sm" disabled={bio.links.length >= 30} onClick={() => change({ links: [...bio.links, { id: crypto.randomUUID(), label: "", url: "", enabled: true }] })}><Plus /> Adicionar link</Button></div>
         {bio.links.length === 0 && <p className="py-4 text-sm text-muted-foreground">Nenhum link adicionado.</p>}

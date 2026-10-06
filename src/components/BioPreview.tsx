@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { bioAppearance, safeBioUrl, type Bio } from "@/lib/bio";
 import type { CSSProperties } from "react";
 import { BioLinkIcon } from "@/components/BioAppearance";
+import { BioSocialIcons } from "@/components/BioSocials";
 
 export function BioPreview({ bio, interactive = false }: { bio: Pick<Bio, "name" | "description" | "photo" | "links" | "appearance">; interactive?: boolean }) {
   const a = bioAppearance(bio.appearance);
@@ -12,6 +13,7 @@ export function BioPreview({ bio, interactive = false }: { bio: Pick<Bio, "name"
       {bio.photo ? <img src={bio.photo} alt={bio.name || "Foto do perfil"} className="h-full w-full object-cover" /> : <UserRound className="h-10 w-10 opacity-70" />}
     </div>
     <h1 className="mt-5 break-words text-2xl font-semibold">{bio.name || "Nome do perfil"}</h1>
+    <BioSocialIcons socials={bio.appearance?.socials} interactive={interactive} />
     {bio.description && <p className="mt-3 whitespace-pre-wrap break-words text-sm opacity-80">{bio.description}</p>}
     <div className="mt-8 space-y-3">
       {bio.links.filter(l => l.enabled).map(l => {
