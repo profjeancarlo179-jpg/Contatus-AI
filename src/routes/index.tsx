@@ -40,13 +40,13 @@ function Login() {
     setLoading(true);
     try {
       if (mode === "in") {
-        const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: password.trim() });
         if (error) throw error;
         navigate({ to: "/painel" });
       } else {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim().toLowerCase(),
-          password,
+          password: password.trim(),
           options: { emailRedirectTo: window.location.origin, data: { full_name: name, agency_name: agency } },
         });
         if (error) throw error;
