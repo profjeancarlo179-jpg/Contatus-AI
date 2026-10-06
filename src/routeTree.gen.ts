@@ -18,10 +18,12 @@ import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedCriacaoRouteImport } from './routes/_authenticated/criacao'
 import { Route as AuthenticatedCriarRouteImport } from './routes/_authenticated/criar'
+import { Route as AuthenticatedLinkPerfilRouteImport } from './routes/_authenticated/link-perfil'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedPermissoesRouteImport } from './routes/_authenticated/permissoes'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as ATokenRouteImport } from './routes/a.$token'
+import { Route as BSlugRouteImport } from './routes/b.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -68,6 +70,11 @@ const AuthenticatedCriarRoute = AuthenticatedCriarRouteImport.update({
   path: '/criar',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLinkPerfilRoute = AuthenticatedLinkPerfilRouteImport.update({
+  id: '/link-perfil',
+  path: '/link-perfil',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
@@ -88,6 +95,11 @@ const ATokenRoute = ATokenRouteImport.update({
   path: '/a/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BSlugRoute = BSlugRouteImport.update({
+  id: '/b/$slug',
+  path: '/b/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -98,10 +110,12 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/criacao': typeof AuthenticatedCriacaoRoute
   '/criar': typeof AuthenticatedCriarRoute
+  '/link-perfil': typeof AuthenticatedLinkPerfilRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/permissoes': typeof AuthenticatedPermissoesRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/a/$token': typeof ATokenRoute
+  '/b/$slug': typeof BSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -112,10 +126,12 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/criacao': typeof AuthenticatedCriacaoRoute
   '/criar': typeof AuthenticatedCriarRoute
+  '/link-perfil': typeof AuthenticatedLinkPerfilRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/permissoes': typeof AuthenticatedPermissoesRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/a/$token': typeof ATokenRoute
+  '/b/$slug': typeof BSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -128,10 +144,12 @@ export interface FileRoutesById {
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/criacao': typeof AuthenticatedCriacaoRoute
   '/_authenticated/criar': typeof AuthenticatedCriarRoute
+  '/_authenticated/link-perfil': typeof AuthenticatedLinkPerfilRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/permissoes': typeof AuthenticatedPermissoesRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/a/$token': typeof ATokenRoute
+  '/b/$slug': typeof BSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -144,10 +162,12 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/criacao'
     | '/criar'
+    | '/link-perfil'
     | '/painel'
     | '/permissoes'
     | '/relatorios'
     | '/a/$token'
+    | '/b/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -158,10 +178,12 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/criacao'
     | '/criar'
+    | '/link-perfil'
     | '/painel'
     | '/permissoes'
     | '/relatorios'
     | '/a/$token'
+    | '/b/$slug'
   id:
     | '__root__'
     | '/'
@@ -173,16 +195,19 @@ export interface FileRouteTypes {
     | '/_authenticated/configuracoes'
     | '/_authenticated/criacao'
     | '/_authenticated/criar'
+    | '/_authenticated/link-perfil'
     | '/_authenticated/painel'
     | '/_authenticated/permissoes'
     | '/_authenticated/relatorios'
     | '/a/$token'
+    | '/b/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   ATokenRoute: typeof ATokenRoute
+  BSlugRoute: typeof BSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -250,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCriarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/link-perfil': {
+      id: '/_authenticated/link-perfil'
+      path: '/link-perfil'
+      fullPath: '/link-perfil'
+      preLoaderRoute: typeof AuthenticatedLinkPerfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/painel': {
       id: '/_authenticated/painel'
       path: '/painel'
@@ -278,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ATokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/b/$slug': {
+      id: '/b/$slug'
+      path: '/b/$slug'
+      fullPath: '/b/$slug'
+      preLoaderRoute: typeof BSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -289,6 +328,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedCriacaoRoute: typeof AuthenticatedCriacaoRoute
   AuthenticatedCriarRoute: typeof AuthenticatedCriarRoute
+  AuthenticatedLinkPerfilRoute: typeof AuthenticatedLinkPerfilRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPermissoesRoute: typeof AuthenticatedPermissoesRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
@@ -302,6 +342,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedCriacaoRoute: AuthenticatedCriacaoRoute,
   AuthenticatedCriarRoute: AuthenticatedCriarRoute,
+  AuthenticatedLinkPerfilRoute: AuthenticatedLinkPerfilRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPermissoesRoute: AuthenticatedPermissoesRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
@@ -314,6 +355,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   ATokenRoute: ATokenRoute,
+  BSlugRoute: BSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
