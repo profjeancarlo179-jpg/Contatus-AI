@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ImageIcon, Trash2 } from "lucide-react";
+import { ImageIcon, Repeat, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchContents, FORMAT_LABEL, isVideo, useMediaUrls, type Content } from "@/lib/content";
@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { FeedbackCard } from "@/components/FeedbackCard";
 import { ContentEditor } from "@/components/ContentEditor";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/arquivos")({
@@ -53,6 +54,13 @@ function Arquivos() {
         <h1 className="text-3xl font-bold">Arquivos</h1>
         <p className="text-muted-foreground">Todo o histórico, com o status de aprovação de cada arte.</p>
       </div>
+      <Tabs defaultValue="arquivos">
+        <TabsList>
+          <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
+          <TabsTrigger value="aprovadas">Artes aprovadas</TabsTrigger>
+        </TabsList>
+        <TabsContent value="aprovadas" className="mt-6"><Approved data={data} /></TabsContent>
+        <TabsContent value="arquivos" className="mt-6 space-y-6">
       <div className="flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <button
@@ -73,6 +81,8 @@ function Arquivos() {
           ))}
         </div>
       )}
+        </TabsContent>
+      </Tabs>
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader><DialogTitle>{editing?.title}</DialogTitle></DialogHeader>
@@ -120,6 +130,55 @@ function Card({ c, onOpen, onDelete }: { c: Content; onOpen: () => void; onDelet
             {[c.rejection_reasons.join(", "), c.feedback].filter(Boolean).join(" — ")}
           </p>
         )}
+      </div>
+    </div>
+  );
+}
+
+function Approved({ data }: { data: Content[] }) {
+  const list = data
+    .filter((c) => c.status === "approved")
+    .sort((a, b) => (b.decided_at ?? b.updated_at).localeCompare(a.decided_at ?? a.updated_at));
+  if (list.length === 0) return <div className="glass rounded-xl p-10 text-center text-muted-foreground">Nenhuma arte aprovada ainda.</div>;
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {list.map((c) => <ApprovedCard key={c.id} c={c} />)}
+    </div>
+  );
+}
+
+function ApprovedCard({ c }: { c: Content }) {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  async function repost() {
+    setBusy(true);
+    const { error } = await supabase.from("contents").insert({
+      title: `${c.title} (postar novamente)`, kind: c.kind, format: c.format, caption: c.caption, hashtags: c.hashtags,
+      image_urls: c.image_urls, audio: c.audio, location: c.location, client_name: c.client_name, client_email: c.client_email,
+      status: "draft",
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Pedido criado: a arte foi copiada para os rascunhos em Pré-visualizar & Aprovação");
+    qc.invalidateQueries({ queryKey: ["contents"] });
+  }
+  const [thumb] = useMediaUrls(c.image_urls.slice(0, 1));
+  const when = c.decided_at ?? c.updated_at;
+  return (
+    <div className="glass overflow-hidden rounded-xl">
+      <div className="relative aspect-square w-full bg-muted">
+        {thumb ? (
+          isVideo(c.image_urls[0]) ? <video src={thumb} className="h-full w-full object-cover" controls muted /> : <img src={thumb} alt={c.title} className="h-full w-full object-cover" />
+        ) : (
+          <div className="grid h-full place-items-center text-muted-foreground"><ImageIcon className="h-8 w-8" /></div>
+        )}
+      </div>
+      <div className="p-3 text-sm">
+        <div className="truncate font-medium">{c.title}{c.client_name ? ` · ${c.client_name}` : ""}</div>
+        <div className="text-xs text-success">
+          Aprovada em {new Date(when).toLocaleDateString("pt-BR")}{c.auto_approved ? " (automática)" : ""}
+        </div>
+        <Button size="sm" variant="outline" className="mt-2 w-full" disabled={busy} onClick={repost}><Repeat /> Postar novamente</Button>
       </div>
     </div>
   );
