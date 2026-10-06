@@ -34,7 +34,8 @@ function ProfileLinks() {
     if (error) throw error;
     return (data ?? []) as unknown as Bio[];
   } });
-  const [tab, setTab] = useState<"novo" | "editar" | "arquivo">("novo");
+  const [tab, setTab] = useState<"novo" | "editar" | "arquivo" | "redirect">("novo");
+  const [previewId, setPreviewId] = useState("");
   const editId = selected;
   const current = pages.find(p => p.id === editId);
   const refresh = () => qc.invalidateQueries({ queryKey: ["bio-pages"] });
@@ -43,10 +44,10 @@ function ProfileLinks() {
     if (error) return toast.error("Não foi possível alterar");
     toast.success(p.paused ? "Página reativada" : "Página pausada"); await refresh();
   }
-  const tabs = [["novo", "Novo"], ["editar", "Editar"], ["arquivo", "Arquivo"]] as const;
+  const tabs = [["novo", "Novo"], ["editar", "Editar"], ["arquivo", "Arquivo"], ["redirect", "Link de redirecionamento"]] as const;
   return <div className="space-y-6">
     <h1 className="text-3xl font-bold">Link do perfil</h1>
-    <div className="flex gap-2 border-b border-border pb-2">{tabs.map(([k, l]) => <Button key={k} variant={tab === k ? "secondary" : "ghost"} onClick={() => { setTab(k); if (k === "editar") setSelected("new"); }}>{l}</Button>)}</div>
+    <div className="flex flex-wrap gap-2 border-b border-border pb-2">{tabs.map(([k, l]) => <Button key={k} variant={tab === k ? "secondary" : "ghost"} onClick={() => { setTab(k); if (k === "editar") setSelected("new"); }}>{l}</Button>)}</div>
     {isLoading ? <Loader2 className="animate-spin" /> : error ? <p className="text-destructive">Não foi possível carregar suas páginas.</p> : tab === "novo" ? (
       <BioEditor key="new" onSaved={async id => { await refresh(); setSelected(id); setTab("editar"); }} onDeleted={async () => { await refresh(); }} />
     ) : tab === "editar" ? (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página pronta ainda. Crie uma na aba Novo.</p> : !current ? <>
@@ -59,14 +60,36 @@ function ProfileLinks() {
     </> : <>
       <Button variant="ghost" onClick={() => setSelected("new")}><ArrowLeft /> Escolher outro perfil</Button>
       <BioEditor key={editId} initial={current} onSaved={async id => { await refresh(); setSelected(id); }} onDeleted={async () => { setSelected("new"); await refresh(); }} />
-    </>) : (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página salva.</p> :
+    </>) : tab === "arquivo" ? (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página salva.</p> :
       <div className="space-y-3">{(pages as (Bio & { paused?: boolean })[]).map(p => <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
         <div><p className="font-semibold">{p.name}</p><p className="text-sm text-muted-foreground">/b/{p.slug} · {p.paused ? <span className="text-destructive">Pausada</span> : p.published ? <span className="text-success">Pública</span> : "Rascunho"}</p></div>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => { setSelected(p.id!); setTab("editar"); }}>Editar</Button>
           <Button variant={p.paused ? "neon" : "destructive"} onClick={() => togglePause(p)}>{p.paused ? <><Play /> Reativar</> : <><Pause /> Pausar</>}</Button>
         </div>
-      </div>)}</div>)}
+      </div>)}</div>) : (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página salva. Crie uma na aba Novo.</p> :
+      <RedirectPreview pages={pages} previewId={previewId} onSelect={setPreviewId} />)}
+  </div>;
+}
+function RedirectPreview({ pages, previewId, onSelect }: { pages: Bio[]; previewId: string; onSelect: (id: string) => void }) {
+  const page = pages.find(p => p.id === previewId) ?? pages[0];
+  if (!page) return null;
+  return <div className="space-y-6">
+    <div className="space-y-2">
+      <p className="text-muted-foreground">Escolha o perfil para ver como ficou o mockup:</p>
+      <div className="flex flex-wrap gap-2">{pages.map(p => <Button key={p.id} variant={page.id === p.id ? "secondary" : "outline"} onClick={() => onSelect(p.id!)}>{p.name}</Button>)}</div>
+    </div>
+    <div className="mx-auto w-full max-w-[420px] space-y-4">
+      <h2 className="text-sm font-medium text-muted-foreground">Pré-visualização</h2>
+      <div className="min-h-[520px] overflow-hidden rounded-lg border border-border bg-background"><BioPreview bio={page} /></div>
+      {page.published && <div className="space-y-3">
+        <p className="break-all text-sm text-success">{bioPublicUrl(page.slug)}</p>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={async () => { try { await navigator.clipboard.writeText(bioPublicUrl(page.slug)); toast.success("Link copiado"); } catch { toast.error("Não foi possível copiar"); } }}><Copy /> Copiar link</Button>
+          <Button variant="outline" asChild><a href={bioPublicUrl(page.slug)} target="_blank" rel="noopener noreferrer"><ExternalLink /> Abrir</a></Button>
+        </div>
+      </div>}
+    </div>
   </div>;
 }
 function BioEditor({ initial, onSaved, onDeleted }: { initial?: Bio; onSaved: (id: string) => Promise<void>; onDeleted: () => Promise<void> }) {
