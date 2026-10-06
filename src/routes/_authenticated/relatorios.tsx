@@ -2,7 +2,7 @@ import { useSubTabs } from "@/lib/access";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Eye, EyeOff, FileBarChart, Loader2, Trash2 } from "lucide-react";
+import { Eye, EyeOff, FileBarChart, Loader2, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { isStaff, useAccess } from "@/lib/access";
@@ -185,7 +185,32 @@ function AdmView() {
   const [clientId, setClientId] = useState("");
   const [title, setTitle] = useState("");
   const [period, setPeriod] = useState("");
-  const [network, setNetwork] = useState("Instagram");
+  const DEFAULT_NETWORKS = ["Instagram", "Facebook", "TikTok", "LinkedIn", "YouTube"];
+  const [customNetworks, setCustomNetworks] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem("report-networks") ?? "[]"); } catch { return []; }
+  });
+  const [networks, setNetworks] = useState<string[]>(["Instagram"]);
+  const [newNetwork, setNewNetwork] = useState("");
+  const allNetworks = [...DEFAULT_NETWORKS, ...customNetworks.filter((n) => !DEFAULT_NETWORKS.includes(n))];
+  function toggleNetwork(n: string) {
+    setNetworks((cur) => cur.includes(n) ? cur.filter((x) => x !== n) : [...cur, n]);
+  }
+  function addNetwork() {
+    const n = newNetwork.trim();
+    if (!n) return;
+    if (allNetworks.some((x) => x.toLowerCase() === n.toLowerCase())) { setNetworks((cur) => cur.includes(n) ? cur : [...cur, n]); setNewNetwork(""); return; }
+    const next = [...customNetworks, n];
+    setCustomNetworks(next);
+    localStorage.setItem("report-networks", JSON.stringify(next));
+    setNetworks((cur) => [...cur, n]);
+    setNewNetwork("");
+  }
+  function removeCustomNetwork(n: string) {
+    const next = customNetworks.filter((x) => x !== n);
+    setCustomNetworks(next);
+    localStorage.setItem("report-networks", JSON.stringify(next));
+    setNetworks((cur) => cur.filter((x) => x !== n));
+  }
   const [metrics, setMetrics] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState("");
   const [total, setTotal] = useState("");
