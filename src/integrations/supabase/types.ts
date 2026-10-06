@@ -157,6 +157,11 @@ export type Database = {
           brand_arts: string[]
           brand_colors: string | null
           brand_fonts: string | null
+          company_address: string | null
+          company_cnpj: string | null
+          company_email: string | null
+          company_name: string | null
+          company_phone: string | null
           created_at: string
           created_by: string
           id: string
@@ -180,6 +185,11 @@ export type Database = {
           brand_arts?: string[]
           brand_colors?: string | null
           brand_fonts?: string | null
+          company_address?: string | null
+          company_cnpj?: string | null
+          company_email?: string | null
+          company_name?: string | null
+          company_phone?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -203,6 +213,11 @@ export type Database = {
           brand_arts?: string[]
           brand_colors?: string | null
           brand_fonts?: string | null
+          company_address?: string | null
+          company_cnpj?: string | null
+          company_email?: string | null
+          company_name?: string | null
+          company_phone?: string | null
           created_at?: string
           created_by?: string
           id?: string
