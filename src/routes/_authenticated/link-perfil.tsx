@@ -90,10 +90,14 @@ function ProfileLinks() {
   </div>;
 }
 function RedirectPreview({ pages }: { pages: Bio[] }) {
-  const page = pages[0];
+  const [sel, setSel] = useState(pages[0]?.id ?? "");
+  const page = pages.find(p => p.id === sel) ?? pages[0];
   if (!page) return null;
   return <div className="space-y-6">
     <div className="mx-auto w-full max-w-[420px] space-y-4">
+      {pages.length > 1 && <select aria-label="Escolher perfil" className="w-full rounded-md border border-border bg-card p-2 text-sm" value={page.id} onChange={e => setSel(e.target.value)}>
+        {pages.map(p => <option key={p.id} value={p.id}>{p.name} (/b/{p.slug})</option>)}
+      </select>}
       <h2 className="text-sm font-medium text-muted-foreground">Pré-visualização</h2>
       <div className="min-h-[520px] overflow-hidden rounded-lg border border-border bg-background"><BioPreview bio={page} /></div>
       {page.published && <div className="space-y-3">
