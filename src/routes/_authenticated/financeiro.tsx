@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ServicesCatalog } from "@/components/ServicesCatalog";
 import { InvoiceCard, type Invoice } from "@/components/InvoiceCard";
 import { ContractsTab } from "@/components/ContractsTab";
+import { InvoicePreviewButton } from "@/components/InvoicePreview";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({
@@ -141,6 +142,7 @@ function GerarFatura() {
         {invoices.map((i) => (
           <InvoiceCard key={i.id} i={i} clientName={nameOf(i.client_id)} actions={
             <>
+              <InvoicePreviewButton i={i} clientName={nameOf(i.client_id)} />
               <Select value={i.status} onValueChange={(v) => setStatus(i, v)}>
                 <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
                 <SelectContent>
