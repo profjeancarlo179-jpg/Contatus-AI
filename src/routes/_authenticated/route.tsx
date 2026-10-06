@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { LayoutDashboard, PenSquare, Smartphone, FolderOpen, LineChart, LogOut, Sparkles, User, ShieldCheck, Clock, BarChart3, Clapperboard, Settings } from "lucide-react";
+import { LayoutDashboard, PenSquare, Smartphone, FolderOpen, LineChart, LogOut, Sparkles, User, ShieldCheck, Clock, BarChart3, Clapperboard, Settings, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ROLE_LABEL, useAccess, isStaff } from "@/lib/access";
@@ -19,15 +19,21 @@ export const Route = createFileRoute("/_authenticated")({
   component: AppLayout,
 });
 
-const TABS = [
+type Tab = { to: string; label: string; icon: typeof LayoutDashboard; only?: "staff" | "master" };
+const ROW1: Tab[] = [
   { to: "/painel", label: "Início", icon: LayoutDashboard },
   { to: "/criar", label: "Criar Conteúdo", icon: PenSquare },
   { to: "/aprovacao", label: "Pré-visualizar & Aprovação", icon: Smartphone },
   { to: "/arquivos", label: "Arquivos", icon: FolderOpen },
-  { to: "/analise", label: "Análise & Conexão", icon: LineChart },
-  { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { to: "/criacao", label: "Criação Vídeo & Imagem", icon: Clapperboard },
-] as const;
+];
+const ROW2: Tab[] = [
+  { to: "/clientes", label: "Clientes", icon: Users, only: "staff" },
+  { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
+  { to: "/analise", label: "Análise & Conexão", icon: LineChart },
+  { to: "/configuracoes", label: "Configurações", icon: Settings, only: "staff" },
+  { to: "/permissoes", label: "Permissões", icon: ShieldCheck, only: "master" },
+];
 
 function AppLayout() {
   const navigate = useNavigate();
@@ -56,38 +62,24 @@ function AppLayout() {
             <Button variant="ghost" size="sm" onClick={logout}><LogOut /> Sair</Button>
           </div>
         </div>
-        <nav className="mx-auto max-w-7xl overflow-x-auto px-4">
-          <div className="flex min-w-max gap-1">
-            {TABS.map((t) => (
-              <Link
-                key={t.to}
-                to={t.to}
-                className="flex items-center gap-2 border-b-2 border-transparent px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                activeProps={{ className: "!border-primary !text-foreground" }}
-              >
-                <t.icon className="h-4 w-4" />
-                {t.label}
-              </Link>
-            ))}
-            {isStaff(access?.role) && (
-              <Link
-                to="/configuracoes"
-                className="flex items-center gap-2 border-b-2 border-transparent px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                activeProps={{ className: "!border-primary !text-foreground" }}
-              >
-                <Settings className="h-4 w-4" /> Configurações
-              </Link>
-            )}
-            {access?.role === "master" && (
-              <Link
-                to="/permissoes"
-                className="flex items-center gap-2 border-b-2 border-transparent px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                activeProps={{ className: "!border-primary !text-foreground" }}
-              >
-                <ShieldCheck className="h-4 w-4" /> Permissões
-              </Link>
-            )}
-          </div>
+        <nav className="mx-auto max-w-7xl space-y-1 px-4 pb-1">
+          {[ROW1, ROW2].map((row, i) => (
+            <div key={i} className="flex flex-wrap gap-1">
+              {row
+                .filter((t) => (t.only === "staff" ? isStaff(access?.role) : t.only === "master" ? access?.role === "master" : true))
+                .map((t) => (
+                  <Link
+                    key={t.to}
+                    to={t.to}
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    activeProps={{ className: "!bg-primary/15 !text-foreground ring-1 ring-primary/40" }}
+                  >
+                    <t.icon className="h-4 w-4" />
+                    {t.label}
+                  </Link>
+                ))}
+            </div>
+          ))}
         </nav>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-8">
