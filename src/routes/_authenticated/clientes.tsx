@@ -45,11 +45,13 @@ type Client = {
   brand_arts: string[]; brand_colors: string | null; brand_fonts: string | null;
   resp_name: string | null; resp_role: string | null; resp_email: string | null; resp_phone: string | null; resp_document: string | null;
   socials: Record<string, string>; observations: string | null; notes: string | null; user_id: string | null; user_ids: string[];
+  company_name: string | null; company_cnpj: string | null; company_phone: string | null; company_email: string | null; company_address: string | null;
 };
 
 const EMPTY: Omit<Client, "id"> = {
   name: "", segment: "", profile_description: "", logo_path: null, brand_arts: [], brand_colors: "", brand_fonts: "",
   resp_name: "", resp_role: "", resp_email: "", resp_phone: "", resp_document: "", socials: {}, observations: "", notes: "", user_id: null, user_ids: [],
+  company_name: "", company_cnpj: "", company_phone: "", company_email: "", company_address: "",
 };
 
 function Clientes() {
@@ -217,6 +219,19 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
               <Label>Descrição do perfil</Label>
               <Textarea rows={3} value={d.profile_description ?? ""} onChange={(e) => set("profile_description", e.target.value)} placeholder="Público, tom de voz, objetivos, diferenciais…" />
             </div>
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Perfil da empresa">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {field("company_name", "Nome da empresa (razão social)", "Ex: Café Cuiabá LTDA")}
+          {field("company_cnpj", "CNPJ", "00.000.000/0000-00")}
+          {field("company_phone", "Telefone comercial", "(65) 3000-0000")}
+          {field("company_email", "E-mail comercial", "contato@empresa.com", "email")}
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Endereço</Label>
+            <Input value={d.company_address ?? ""} placeholder="Rua, número, bairro, cidade/UF, CEP" onChange={(e) => set("company_address", e.target.value)} />
           </div>
         </div>
       </Section>
