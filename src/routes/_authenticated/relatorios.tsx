@@ -2,7 +2,7 @@ import { useSubTabs } from "@/lib/access";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Eye, EyeOff, FileBarChart, Loader2, Plus, Trash2, X } from "lucide-react";
+import { Eye, EyeOff, FileBarChart, Loader2, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { isStaff, useAccess } from "@/lib/access";
@@ -509,6 +509,7 @@ function DashboardView({ archived = false }: { archived?: boolean }) {
     }
     return (
       <div className="space-y-6">
+        {filterBar}
         {groups.map(([cid, rs]) => (
           <div key={cid} className="space-y-2">
             <div className="flex flex-wrap items-center gap-3 border-b border-border pb-2">
@@ -542,6 +543,7 @@ function DashboardView({ archived = false }: { archived?: boolean }) {
 
   return (
     <div className="space-y-8">
+      {filterBar}
       {groups.map(([cid, rs]) => (
         <div key={cid} className="space-y-4">
           <div className="flex flex-wrap items-center gap-3 border-b border-border pb-2">
