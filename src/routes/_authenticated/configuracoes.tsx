@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Clapperboard, ImageIcon, Instagram, KeyRound, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Mail } from "lucide-react";
 import { isStaff, useAccess } from "@/lib/access";
 import { PaymentSettingsForm } from "@/components/PaymentSettingsForm";
 
@@ -32,6 +34,13 @@ function Configuracoes() {
         <h1 className="text-3xl font-bold">Configurações</h1>
         <p className="text-muted-foreground">Integrações de IA e chaves de acesso. As chaves ficam guardadas com segurança, nunca no navegador.</p>
       </div>
+      <Tabs defaultValue="ia">
+      <TabsList>
+        <TabsTrigger value="ia">Configurações de IA</TabsTrigger>
+        {access?.role === "master" && <TabsTrigger value="pagamento">Configurações de pagamento</TabsTrigger>}
+        <TabsTrigger value="email">Configurações de e-mail</TabsTrigger>
+      </TabsList>
+      <TabsContent value="ia" className="mt-4">
       <div className="grid gap-4 md:grid-cols-2">
         {INTEGRATIONS.map((i) => (
           <div key={i.name} className="glass flex flex-col gap-4 rounded-xl p-6">
@@ -49,7 +58,19 @@ function Configuracoes() {
           </div>
         ))}
       </div>
-      {access?.role === "master" && <PaymentSettingsForm />}
+      </TabsContent>
+      {access?.role === "master" && <TabsContent value="pagamento" className="mt-4"><PaymentSettingsForm /></TabsContent>}
+      <TabsContent value="email" className="mt-4">
+        <div className="glass flex items-start gap-3 rounded-xl p-6">
+          <span className="grid h-10 w-10 place-items-center rounded-lg bg-primary/15"><Mail className="h-5 w-5 text-primary" /></span>
+          <div className="flex-1">
+            <div className="font-semibold">Envio de e-mails</div>
+            <div className="text-sm text-muted-foreground">Hoje o "Enviar por e-mail" abre o seu programa de e-mail com a mensagem pronta. O envio automático (links de aprovação, faturas, contratos) pode ser configurado aqui.</div>
+          </div>
+          <span className="rounded-full bg-warning/15 px-2.5 py-0.5 text-xs text-warning">Pendente</span>
+        </div>
+      </TabsContent>
+      </Tabs>
     </div>
   );
 }
