@@ -180,7 +180,8 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
       toast.success("Login criado, vinculado e cliente salvo");
       onSaved(res.data.id);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Falha ao criar login");
+      const msg = e instanceof Error ? e.message : "";
+      toast.error(msg.includes("invalid_string") || msg.includes("Invalid email") ? "Informe um e-mail válido (ex: nome@empresa.com)" : msg || "Falha ao criar login");
     } finally { setCreating(false); }
   }
 
