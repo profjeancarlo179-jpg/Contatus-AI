@@ -5,7 +5,7 @@ import { Eye, FileDown, Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { InvoicePrint, usePaymentSettings } from "@/components/InvoicePrint";
+import { InvoicePrint, printInvoicePaper, usePaymentSettings } from "@/components/InvoicePrint";
 import type { Invoice } from "@/components/InvoiceCard";
 
 export function InvoicePreviewButton({ i, clientName }: { i: Invoice; clientName: string }) {
@@ -15,12 +15,7 @@ export function InvoicePreviewButton({ i, clientName }: { i: Invoice; clientName
   const screenRef = useRef<HTMLDivElement>(null);
 
   function print() {
-    document.body.dataset.printInvoice = i.id;
-    const el = screenRef.current;
-    el?.classList.add("printing");
-    const done = () => { el?.classList.remove("printing"); delete document.body.dataset.printInvoice; window.removeEventListener("afterprint", done); };
-    window.addEventListener("afterprint", done);
-    setTimeout(() => window.print(), 50);
+    printInvoicePaper(screenRef.current);
   }
 
   async function savePdf() {
