@@ -92,6 +92,12 @@ function CentralFaturas() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("todas");
   const [view, setView] = useState("todas");
+  const [month, setMonth] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
+  const invoiceDate = (i: Invoice) => (i.due_date ? i.due_date.slice(0, 10) : (i.paid_at || i.created_at || "").slice(0, 10));
+  const monthOptions = Array.from(new Set(invoices.map(invoiceDate).filter(Boolean).map((d) => d.slice(0, 7)))).sort();
 
   const nameOf = (id: string) => {
     const r = regOfUser(regs, id);
