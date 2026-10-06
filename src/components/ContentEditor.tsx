@@ -1,13 +1,17 @@
 import { useState } from "react";
-import { Loader2, Trash2, Upload } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Instagram, Loader2, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { InstagramPreview } from "@/components/InstagramPreview";
 import { FORMAT_LABEL, uploadMedia, useMediaUrls, type Content } from "@/lib/content";
+
+type ClientOption = { id: string; name: string; socials: Record<string, string> | null };
 
 const KIND_BY_FORMAT: Record<string, string> = { feed: "post", carousel: "carousel", reels: "video", stories: "post" };
 
@@ -37,6 +41,17 @@ export function ContentEditor({
   const thumbs = useMediaUrls(d.image_urls);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((p) => ({ ...p, [k]: v }));
   const multi = d.format === "carousel" || d.format === "stories";
+  const { data: clients = [] } = useQuery({
+    queryKey: ["clients", "simple"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("clients").select("id,name,socials").order("name");
+      if (error) throw error;
+      return (data ?? []) as ClientOption[];
+    },
+  });
+  const selClient = clients.find((c) => c.name === d.client_name);
+  const igHandle = (selClient?.socials?.instagram ?? "").trim().replace(/^@+/, "").replace(/\s+/g, "");
+  const previewHandle = igHandle || (d.client_name || "seu.perfil").toLowerCase().replace(/\s+/g, ".");
 
   async function onFiles(files: FileList | null) {
     if (!files?.length) return;
@@ -77,7 +92,27 @@ export function ContentEditor({
       <div className="space-y-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5"><Label>Título interno</Label><Input value={d.title} onChange={(e) => set("title", e.target.value)} placeholder="Ex: Lançamento coleção verão" /></div>
-          <div className="space-y-1.5"><Label>Cliente</Label><Input value={d.client_name ?? ""} onChange={(e) => set("client_name", e.target.value)} placeholder="Nome do cliente" /></div>
+          <div className="space-y-1.5">
+            <Label>Cliente</Label>
+            <Select
+              value={selClient?.id ?? ""}
+              onValueChange={(id) => {
+                const c = clients.find((x) => x.id === id);
+                set("client_name", c ? c.name : "");
+              }}
+            >
+              <SelectTrigger className="w-full"><SelectValue placeholder="Selecionar cliente cadastrado" /></SelectTrigger>
+              <SelectContent>
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input value={d.client_name ?? ""} onChange={(e) => set("client_name", e.target.value)} placeholder="Ou digite o nome do cliente" />
+            {igHandle && (
+              <p className="flex items-center gap-1 text-xs text-primary"><Instagram className="h-3.5 w-3.5" /> Instagram do cliente: @{igHandle}</p>
+            )}
+          </div>
         </div>
         <div className="space-y-1.5">
           <Label>Formato</Label>
@@ -125,7 +160,7 @@ export function ContentEditor({
         </Button>
       </div>
       <div className="lg:sticky lg:top-36 lg:self-start">
-        <InstagramPreview format={d.format} media={d.image_urls} caption={d.caption} hashtags={d.hashtags} audio={d.audio} location={d.location} handle={(d.client_name || "seu.perfil").toLowerCase().replace(/\s+/g, ".")} />
+        <InstagramPreview format={d.format} media={d.image_urls} caption={d.caption} hashtags={d.hashtags} audio={d.audio} location={d.location} handle={previewHandle} />
       </div>
     </div>
   );
