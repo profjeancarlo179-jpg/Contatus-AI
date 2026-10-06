@@ -132,11 +132,15 @@
 .bio-theme-swatch-3 { background: #e8f1ff; }
 
 @media print {
-  @page { size: A4; margin: 10mm; }
+  @page { size: A4 portrait; margin: 8mm; }
+  html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; }
   body.printing-invoice > *:not(#print-root) { display: none !important; }
   #print-root { display: block; }
-  #print-root .inv-paper { display: block !important; }
+  #print-root .inv-paper { display: block !important; width: 194mm; max-width: 194mm; margin: 0 auto; padding: 0 !important; zoom: 0.82; }
   #print-root .inv-paper * { background: transparent !important; box-shadow: none !important; }
+  #print-root .inv-box, #print-root .inv-cell, #print-root .inv-pay, #print-root .inv-cut { break-inside: avoid; page-break-inside: avoid; }
+  #print-root .inv-cut { margin: 8px 0; }
+  #print-root .inv-box { padding: 10px; }
 }
 
 /* Printable invoice */
