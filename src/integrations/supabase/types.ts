@@ -644,6 +644,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_client_member: {
+        Args: { _client: string; _user: string }
+        Returns: boolean
+      }
       list_clients: {
         Args: never
         Returns: {
