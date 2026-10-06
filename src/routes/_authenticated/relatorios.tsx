@@ -32,7 +32,7 @@ const METRICS: { key: string; label: string; suffix?: string; color?: string; sh
   { key: "visualizacoes", label: "Visualizações totais", short: "Totais", color: "#2cb574", w: 0.12 },
   { key: "visualizadores", label: "Visualizadores únicos", short: "Únicos", color: "#4c5fd7", w: 0.09 },
   { key: "cliques", label: "Cliques no link", short: "Cliques link", color: "#f4b400", w: 0.03 },
-  { key: "linktree", label: "Visitas ao Linktree", short: "Linktree", color: "#39e587", w: 0.025 },
+  { key: "linktree", label: "Visitas aos Contatos", short: "Contatos", color: "#39e587", w: 0.025 },
   { key: "visitas", label: "Visitas ao perfil", short: "Visitas", color: "#1098ad", w: 0.04 },
   { key: "seguidores", label: "Novos seguidores", short: "Seguidores", color: "#6f42c1", w: 0.03 },
   { key: "interacoes", label: "Interações com o conteúdo", short: "Interações", color: "#fd7e14", w: 0.015 },
