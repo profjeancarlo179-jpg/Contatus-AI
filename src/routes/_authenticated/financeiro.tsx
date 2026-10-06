@@ -31,8 +31,8 @@ type Client = { id: string; email: string | null; full_name: string | null; agen
 
 function Financeiro() {
   const { data: access } = useAccess();
-  if (access && access.role !== "master") return <p className="text-muted-foreground">Somente o Adm Master acessa o Financeiro.</p>;
   const sub = useSubTabs("/financeiro");
+  if (access && access.role !== "master") return <p className="text-muted-foreground">Somente o Adm Master acessa o Financeiro.</p>;
   return (
     <div className="space-y-6">
       <div>
