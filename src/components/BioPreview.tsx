@@ -13,7 +13,7 @@ export function BioPreview({ bio, interactive = false }: { bio: Pick<Bio, "name"
       {bio.links.filter(l => l.enabled).map(l => {
         const href = safeBioUrl(l.url);
         return <Button key={l.id} variant="outline" asChild={interactive && !!href} className="min-h-14 w-full justify-between gap-4 whitespace-normal rounded-lg border-primary/30 bg-card px-5 py-3 text-left">
-          {interactive && href ? <a href={href} target="_blank" rel="noopener noreferrer"><span className="break-words">{l.label || "Novo link"}</span><ArrowUpRight className="shrink-0" /></a> : <span><span className="break-words">{l.label || "Novo link"}</span><ArrowUpRight className="shrink-0" /></span>}
+          {interactive && href ? <a href={href} target="_blank" rel="noopener noreferrer"><span className="break-words">{l.label || "Novo link"}</span><ArrowUpRight className="shrink-0" /></a> : <span className="flex w-full items-center justify-between gap-4"><span className="break-words">{l.label || "Novo link"}</span><ArrowUpRight className="shrink-0" /></span>}
         </Button>;
       })}
     </div>
