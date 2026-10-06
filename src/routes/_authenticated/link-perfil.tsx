@@ -34,7 +34,8 @@ function ProfileLinks() {
     if (error) throw error;
     return (data ?? []) as unknown as Bio[];
   } });
-  const [tab, setTab] = useState<"novo" | "editar" | "arquivo">("novo");
+  const [tab, setTab] = useState<"novo" | "editar" | "arquivo" | "redirect">("novo");
+  const [previewId, setPreviewId] = useState("");
   const editId = selected;
   const current = pages.find(p => p.id === editId);
   const refresh = () => qc.invalidateQueries({ queryKey: ["bio-pages"] });
@@ -43,10 +44,10 @@ function ProfileLinks() {
     if (error) return toast.error("Não foi possível alterar");
     toast.success(p.paused ? "Página reativada" : "Página pausada"); await refresh();
   }
-  const tabs = [["novo", "Novo"], ["editar", "Editar"], ["arquivo", "Arquivo"]] as const;
+  const tabs = [["novo", "Novo"], ["editar", "Editar"], ["arquivo", "Arquivo"], ["redirect", "Link de redirecionamento"]] as const;
   return <div className="space-y-6">
     <h1 className="text-3xl font-bold">Link do perfil</h1>
-    <div className="flex gap-2 border-b border-border pb-2">{tabs.map(([k, l]) => <Button key={k} variant={tab === k ? "secondary" : "ghost"} onClick={() => { setTab(k); if (k === "editar") setSelected("new"); }}>{l}</Button>)}</div>
+    <div className="flex flex-wrap gap-2 border-b border-border pb-2">{tabs.map(([k, l]) => <Button key={k} variant={tab === k ? "secondary" : "ghost"} onClick={() => { setTab(k); if (k === "editar") setSelected("new"); }}>{l}</Button>)}</div>
     {isLoading ? <Loader2 className="animate-spin" /> : error ? <p className="text-destructive">Não foi possível carregar suas páginas.</p> : tab === "novo" ? (
       <BioEditor key="new" onSaved={async id => { await refresh(); setSelected(id); setTab("editar"); }} onDeleted={async () => { await refresh(); }} />
     ) : tab === "editar" ? (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página pronta ainda. Crie uma na aba Novo.</p> : !current ? <>
