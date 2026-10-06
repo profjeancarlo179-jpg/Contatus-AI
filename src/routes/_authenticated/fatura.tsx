@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InvoiceCard, type Invoice } from "@/components/InvoiceCard";
+import { InvoicePrint, usePaymentSettings } from "@/components/InvoicePrint";
 
 export const Route = createFileRoute("/_authenticated/fatura")({
   head: () => ({
@@ -27,6 +28,16 @@ function printInvoice(id: string) {
 }
 
 function Fatura() {
+  const { data: settings } = usePaymentSettings();
+  const { data: me } = useQuery({
+    queryKey: ["profile", "me"],
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      const { data } = await supabase.from("profiles").select("full_name, agency_name, email").eq("id", u.user!.id).maybeSingle();
+      return data;
+    },
+  });
+  const clientName = me?.agency_name || me?.full_name || me?.email || "Cliente";
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ["invoices", "mine"],
     queryFn: async () => {
@@ -44,7 +55,7 @@ function Fatura() {
         <p className="text-muted-foreground">Faturas liberadas para você pelo Adm Master.</p>
       </div>
       {!isLoading && invoices.length === 0 && <div className="glass rounded-xl p-8 text-center text-muted-foreground">Nenhuma fatura liberada.</div>}
-      <div className="space-y-3">{invoices.map((i) => <div key={i.id} data-invoice={i.id}><InvoiceCard i={i} actions={<Button variant="outline" size="sm" className="no-print" onClick={() => printInvoice(i.id)}><Printer /> Reimprimir fatura</Button>} /></div>)}</div>
+      <div className="space-y-3">{invoices.map((i) => <div key={i.id} data-invoice={i.id}><InvoiceCard i={i} actions={<Button variant="outline" size="sm" className="no-print" onClick={() => printInvoice(i.id)}><Printer /> Reimprimir fatura</Button>} /><InvoicePrint i={i} s={settings} clientName={clientName} /></div>)}</div>
     </div>
   );
 }

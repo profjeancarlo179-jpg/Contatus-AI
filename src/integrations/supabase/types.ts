@@ -407,6 +407,51 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_settings: {
+        Row: {
+          address: string
+          company_name: string
+          email: string
+          footer: string
+          id: number
+          instructions: string
+          logo: string | null
+          phone: string
+          pix_code: string
+          updated_at: string
+          website: string
+          whatsapp: string
+        }
+        Insert: {
+          address?: string
+          company_name?: string
+          email?: string
+          footer?: string
+          id?: number
+          instructions?: string
+          logo?: string | null
+          phone?: string
+          pix_code?: string
+          updated_at?: string
+          website?: string
+          whatsapp?: string
+        }
+        Update: {
+          address?: string
+          company_name?: string
+          email?: string
+          footer?: string
+          id?: number
+          instructions?: string
+          logo?: string | null
+          phone?: string
+          pix_code?: string
+          updated_at?: string
+          website?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           agency_name: string | null

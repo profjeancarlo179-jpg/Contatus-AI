@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Clapperboard, ImageIcon, Instagram, KeyRound, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { isStaff, useAccess } from "@/lib/access";
+import { PaymentSettingsForm } from "@/components/PaymentSettingsForm";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
@@ -48,6 +49,7 @@ function Configuracoes() {
           </div>
         ))}
       </div>
+      {access?.role === "master" && <PaymentSettingsForm />}
     </div>
   );
 }
