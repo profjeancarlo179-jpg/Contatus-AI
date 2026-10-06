@@ -179,3 +179,48 @@ function SendCard({ content }: { content: Content }) {
     </div>
   );
 }
+
+function PostarTab({ data }: { data: Content[] }) {
+  const approved = data
+    .filter((c) => c.status === "approved")
+    .sort((a, b) => (b.decided_at ?? "").localeCompare(a.decided_at ?? ""));
+  if (approved.length === 0)
+    return (
+      <div className="glass rounded-xl border-dashed p-8 text-center text-sm text-muted-foreground">
+        Nenhuma arte aprovada ainda. Quando o cliente aprovar — ou pedir para postar de novo — a arte aparece aqui pronta para postagem.
+      </div>
+    );
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {approved.map((c) => <PostarCard key={c.id} c={c} />)}
+    </div>
+  );
+}
+
+function PostarCard({ c }: { c: Content }) {
+  const [thumb] = useMediaUrls(c.image_urls.slice(0, 1));
+  return (
+    <div className="glass overflow-hidden rounded-xl">
+      <div className="aspect-square bg-muted/40">
+        {thumb ? (
+          isVideo(c.image_urls[0]) ? <video src={thumb} className="h-full w-full object-cover" muted /> : <img src={thumb} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full items-center justify-center text-muted-foreground"><ImageIcon className="h-8 w-8" /></div>
+        )}
+      </div>
+      <div className="space-y-1.5 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate text-sm font-medium">{c.title}</span>
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {FORMAT_LABEL[c.format]}{c.client_name ? ` · ${c.client_name}` : ""}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Aprovada em {c.decided_at ? new Date(c.decided_at).toLocaleDateString("pt-BR") : "—"}
+          {c.auto_approved ? " (automática)" : ""}
+        </p>
+      </div>
+    </div>
+  );
+}
