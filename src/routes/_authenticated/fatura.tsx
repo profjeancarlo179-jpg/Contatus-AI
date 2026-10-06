@@ -53,10 +53,15 @@ function Fatura() {
   const [to, setTo] = useState("");
   const invoiceDate = (i: Invoice) => (i.due_date ? i.due_date.slice(0, 10) : (i.paid_at || i.created_at || "").slice(0, 10));
   const monthOptions = Array.from(new Set(invoices.map(invoiceDate).filter(Boolean).map((d) => d.slice(0, 7)))).sort();
+  const refs = refLabels(invoices);
   const filtered = invoices.filter((i) => {
     if (month !== "todos" && invoiceDate(i).slice(0, 7) !== month) return false;
     if (from && invoiceDate(i) < from) return false;
     if (to && invoiceDate(i) > to) return false;
+    if (search.trim()) {
+      const hay = `${refs[i.id] ?? ""} ${i.due_date ?? ""} ${i.description ?? ""}`.toLowerCase();
+      if (!hay.includes(search.trim().toLowerCase())) return false;
+    }
     return true;
   });
   return (
