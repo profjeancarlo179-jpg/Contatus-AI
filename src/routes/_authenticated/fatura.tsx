@@ -51,7 +51,7 @@ function Fatura() {
         <p className="text-muted-foreground">Faturas liberadas para você pelo Adm Master.</p>
       </div>
       {!isLoading && invoices.length === 0 && <div className="glass rounded-xl p-8 text-center text-muted-foreground">Nenhuma fatura liberada.</div>}
-      <div className="space-y-3">{invoices.map((i) => <div key={i.id} data-invoice={i.id}><InvoiceCard i={i} actions={<Button variant="outline" size="sm" className="no-print" onClick={() => printInvoice(i.id)}><Printer /> Reimprimir fatura</Button>} /><InvoicePrint i={i} s={settings} clientName={clientName} /></div>)}</div>
+      <div className="space-y-3">{invoices.map((i) => <div key={i.id} data-invoice={i.id}><InvoiceCard i={i} refLabel={refLabels(invoices)[i.id]} actions={<Button variant="outline" size="sm" className="no-print" onClick={() => printInvoice(i.id)}><Printer /> Reimprimir fatura</Button>} /><InvoicePrint i={i} s={settings} clientName={clientName} /></div>)}</div>
     </div>
   );
 }
