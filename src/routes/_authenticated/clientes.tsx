@@ -164,8 +164,16 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
       const r = await createFn({ data: { email, password: loginPass, full_name: d.resp_name || d.name, agency_name: d.name, role: "client" } });
       set("user_id", r.id);
       qc.invalidateQueries({ queryKey: ["client-users"] });
-      toast.success("Login criado e vinculado. Clique em Salvar.");
       setLoginPass("");
+      // Salva o cliente já com o usuário vinculado
+      if (!d.name.trim()) { toast.success("Login criado. Informe o nome e clique em Salvar."); return; }
+      const payload = { ...d, user_id: r.id, updated_at: new Date().toISOString() };
+      const res = initial
+        ? await supabase.from("clients").update(payload).eq("id", initial.id).select("id").single()
+        : await supabase.from("clients").insert(payload).select("id").single();
+      if (res.error) return toast.error(res.error.message);
+      toast.success("Login criado, vinculado e cliente salvo");
+      onSaved(res.data.id);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao criar login");
     } finally { setCreating(false); }
