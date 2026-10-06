@@ -13,3 +13,6 @@
 - [x] Aprovação automática após 3 dias; selo e notas do cliente em Arquivos
 - [x] Admin Master para jean179@gmail.com e profjeancarlo179@gmail.com (papel atribuído no cadastro)
 - [x] Perfis Cliente / Adm / Adm Master + aba Permissões e aprovação de acesso (só Adm Master)
+- [ ] Aba Relatórios: sub-aba Adm (cria relatório com título e métricas, libera para cliente) e sub-aba Cliente (vê liberados)
+- [ ] Aba Criação: sub-abas Imagem e Vídeo (IA, integração depois) e Edição de vídeo (cortar, 9:16/1:1, texto, música)
+- [ ] Aba Configurações (integrações de IA/API — conectar depois)

@@ -170,6 +170,48 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          author_id: string
+          client_id: string
+          created_at: string
+          id: string
+          metrics: Json
+          network: string
+          notes: string | null
+          period: string | null
+          released: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string
+          client_id: string
+          created_at?: string
+          id?: string
+          metrics?: Json
+          network?: string
+          notes?: string | null
+          period?: string | null
+          released?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          metrics?: Json
+          network?: string
+          notes?: string | null
+          period?: string | null
+          released?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -219,6 +261,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      list_clients: {
+        Args: never
+        Returns: {
+          agency_name: string
+          email: string
+          full_name: string
+          id: string
+        }[]
       }
       list_users: {
         Args: never
