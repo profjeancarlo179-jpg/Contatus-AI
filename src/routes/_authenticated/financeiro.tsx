@@ -52,8 +52,24 @@ function Financeiro() {
   );
 }
 
+type Reg = { id: string; name: string; company_name: string | null; company_cnpj: string | null; resp_document: string | null; user_id: string | null; user_ids: string[] };
+function useRegClients() {
+  return useQuery({
+    queryKey: ["clients", "registered"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("clients").select("id,name,company_name,company_cnpj,resp_document,user_id,user_ids").order("name");
+      if (error) throw error;
+      return (data ?? []) as Reg[];
+    },
+  });
+}
+const regUser = (r: Reg) => r.user_ids?.[0] ?? r.user_id ?? null;
+const regOfUser = (regs: Reg[], uid: string) => regs.find((r) => r.user_id === uid || r.user_ids?.includes(uid));
+
 function GerarFatura() {
   const qc = useQueryClient();
+  const { data: regs = [] } = useRegClients();
+  const [regId, setRegId] = useState("");
   const { data: clients = [] } = useQuery({
     queryKey: ["list_clients"],
     queryFn: async () => {
@@ -80,7 +96,8 @@ function GerarFatura() {
   const [startMonth, setStartMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [months, setMonths] = useState("12");
   const [dueDay, setDueDay] = useState("5");
-  const nameOf = (id: string) => { const c = clients.find((x) => x.id === id); return c?.full_name || c?.email || "Cliente"; };
+  const nameOf = (id: string) => { const r = regOfUser(regs, id); if (r) return r.company_name || r.name; const c = clients.find((x) => x.id === id); return c?.full_name || c?.email || "Cliente"; };
+  const docOf = (id: string) => { const r = regOfUser(regs, id); return r?.company_cnpj || r?.resp_document || undefined; };
   const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
   function batchDates(): string[] {
     const [y, m] = startMonth.split("-").map(Number);
@@ -96,7 +113,8 @@ function GerarFatura() {
 
   async function create(release: boolean) {
     const value = Number(amount.replace(",", "."));
-    if (!clientId) return toast.error("Escolha o cliente");
+    if (!regId) return toast.error("Escolha o cliente");
+    if (!clientId) return toast.error("Este cliente não tem usuário vinculado. Vincule em Clientes → Acesso ao app.");
     if (!description.trim()) return toast.error("Informe a descrição");
     if (!Number.isFinite(value) || value <= 0) return toast.error("Informe um valor válido");
     const base = { client_id: clientId, amount: value, notes: notes.trim() || null, released: release };
@@ -142,13 +160,14 @@ function GerarFatura() {
         <h2 className="flex items-center gap-2 text-lg font-semibold"><Receipt className="h-5 w-5 text-primary" /> Nova fatura</h2>
         <div className="space-y-1.5">
           <Label>Cliente</Label>
-          <Select value={clientId} onValueChange={setClientId}>
+          <Select value={regId} onValueChange={(v) => { setRegId(v); const r = regs.find((x) => x.id === v); setClientId(r ? regUser(r) ?? "" : ""); }}>
             <SelectTrigger><SelectValue placeholder="Escolha o cliente" /></SelectTrigger>
             <SelectContent>
-              {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>)}
+              {regs.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}{r.company_name ? ` — ${r.company_name}` : ""}</SelectItem>)}
             </SelectContent>
           </Select>
-          {clients.length === 0 && <p className="text-xs text-muted-foreground">Nenhum usuário com perfil Cliente ainda.</p>}
+          {regs.length === 0 && <p className="text-xs text-muted-foreground">Nenhum cliente cadastrado ainda.</p>}
+          {regId && !clientId && <p className="text-xs text-destructive">Sem usuário vinculado — vincule em Clientes → Acesso ao app para o cliente ver a fatura.</p>}
         </div>
         <div className="space-y-1.5"><Label>Descrição</Label><Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Ex.: Gestão de Instagram — Outubro" /></div>
         <div className="flex gap-1 rounded-lg bg-muted/40 p-1 text-sm">
@@ -186,7 +205,7 @@ function GerarFatura() {
         {invoices.map((i) => (
           <InvoiceCard key={i.id} i={i} clientName={nameOf(i.client_id)} actions={
             <>
-              <InvoicePreviewButton i={i} clientName={nameOf(i.client_id)} />
+              <InvoicePreviewButton i={i} clientName={nameOf(i.client_id)} clientDoc={docOf(i.client_id)} />
               <Select value={i.status} onValueChange={(v) => setStatus(i, v)}>
                 <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
                 <SelectContent>
