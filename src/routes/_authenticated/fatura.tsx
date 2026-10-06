@@ -39,7 +39,7 @@ function Fatura() {
     queryFn: async () => {
       const { data: u } = await supabase.auth.getUser();
       const { data, error } = await supabase.from("invoices").select("*")
-        .eq("client_id", u.user!.id).eq("released", true).order("created_at", { ascending: false });
+        .eq("client_id", u.user!.id).eq("released", true).order("due_date", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true });
       if (error) throw error;
       return (data ?? []) as Invoice[];
     },

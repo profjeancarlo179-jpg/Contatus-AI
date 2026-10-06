@@ -84,7 +84,7 @@ function CentralFaturas() {
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ["invoices", "all"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("invoices").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("invoices").select("*").order("due_date", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true });
       if (error) throw error;
       return (data ?? []) as Invoice[];
     },
