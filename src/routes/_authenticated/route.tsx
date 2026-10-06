@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { LayoutDashboard, PenSquare, Smartphone, FolderOpen, LineChart, LogOut, Sparkles, User, ShieldCheck, Clock, BarChart3, Clapperboard, Settings, Users, Link2 } from "lucide-react";
+import { LayoutDashboard, PenSquare, Smartphone, FolderOpen, LineChart, LogOut, Sparkles, User, ShieldCheck, Clock, BarChart3, Clapperboard, Settings, Users, Link2, Wallet, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ROLE_LABEL, useAccess, isStaff } from "@/lib/access";
@@ -33,6 +33,8 @@ const ROW2: Tab[] = [
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { to: "/analise", label: "Análise & Conexão", icon: LineChart },
   { to: "/configuracoes", label: "Configurações", icon: Settings, only: "staff" },
+  { to: "/financeiro", label: "Financeiro", icon: Wallet, only: "master" },
+  { to: "/fatura", label: "Fatura", icon: Receipt },
   { to: "/permissoes", label: "Permissões", icon: ShieldCheck, only: "master" },
 ];
 
