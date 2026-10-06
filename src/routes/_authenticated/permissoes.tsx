@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { LayoutGrid, Pencil, UserPlus, PauseCircle, IdCard } from "lucide-react";
+import { LayoutGrid, Pencil, UserPlus, PauseCircle, IdCard, Shield } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useServerFn } from "@tanstack/react-start";
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/permissoes")({
   component: Permissoes,
 });
 
-const ROLES: Record<string, string> = { client: "Cliente", admin: "Adm", master: "Adm Master" };
+const ROLES: Record<string, string> = { master: "Adm Master", admin: "Adm", client: "Cliente", user: "Usuário" };
 
 type U = { id: string; email: string | null; full_name: string | null; agency_name: string | null; approved: boolean; role: string; created_at: string; paused: boolean };
 
@@ -48,8 +48,9 @@ function Permissoes() {
     },
   });
   const [editing, setEditing] = useState<U | null>(null);
-  const [tab, setTab] = useState<"editar" | "novo" | "pausar" | "perfil">("editar");
+  const [tab, setTab] = useState<"editar" | "novo" | "pausar" | "perfil" | "cadastro">("editar");
   const [info, setInfo] = useState<U | null>(null);
+  const { data: me } = useQuery({ queryKey: ["me-id"], queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null });
   async function setPaused(u: U, paused: boolean) {
     const { error } = await (supabase as any).rpc("set_user_paused", { _user: u.id, _paused: paused });
     if (error) return toast.error(error.message.includes("yourself") ? "Você não pode pausar a si mesmo." : "Sem permissão.");
@@ -75,13 +76,14 @@ function Permissoes() {
         <p className="text-muted-foreground">Aprove cadastros e defina o perfil de cada pessoa. {pending > 0 && <span className="text-warning">{pending} aguardando.</span>}</p>
       </div>
       <div className="flex flex-wrap gap-2">
-        {([["editar", "Editar", Pencil], ["novo", "Novo", UserPlus], ["pausar", "Pausar e bloquear", PauseCircle], ["perfil", "Perfil", IdCard]] as const).map(([k, l, I]) => (
+        {([["editar", "Editar", Pencil], ["novo", "Novo", UserPlus], ["pausar", "Pausar e bloquear", PauseCircle], ["perfil", "Perfil", IdCard], ["cadastro", "Cadastro de perfil", Shield]] as const).map(([k, l, I]) => (
           <Button key={k} variant={tab === k ? "neon" : "outline"} size="sm" onClick={() => setTab(k)}><I /> {l}</Button>
         ))}
       </div>
       {tab === "novo" && <NewUser onDone={() => { qc.invalidateQueries({ queryKey: ["users"] }); setTab("editar"); }} />}
       {tab === "pausar" && <PauseList users={data} onPause={setPaused} onBlock={(u, b) => setAccess(u, !b, u.role)} />}
-      {tab === "perfil" && <ProfileList users={data} tabMap={tabMap} />}
+      {tab === "perfil" && <ProfileList users={data.filter((u) => u.id === me)} tabMap={tabMap} />}
+      {tab === "cadastro" && <RoleProfiles />}
       {tab === "editar" && <div className="glass overflow-hidden rounded-xl">
         <ul className="divide-y divide-border">
           {data.map((u) => (
@@ -115,7 +117,7 @@ function Permissoes() {
   );
 }
 
-function TabsDialog({ user, current, onClose, onSaved }: { user: U; current: string[] | null; onClose: () => void; onSaved: () => void }) {
+function TabsDialog({ user, current, onClose, onSaved, roleOnly }: { user: U; current: string[] | null; onClose: () => void; onSaved: () => void; roleOnly?: boolean }) {
   const available = APP_TABS.filter((t) => roleAllows(user.role, t.only));
   const allKeys = available.flatMap((t) => [t.to, ...(SUB_TABS[t.to] ?? []).map((x) => `${t.to}#${x.key}`)]);
   // Old saves without sub-tabs: a page checked with no sub-tab stored means all its sub-tabs.
@@ -131,7 +133,9 @@ function TabsDialog({ user, current, onClose, onSaved }: { user: U; current: str
     setSel((s) => (c ? [...new Set([...s, to, ...subs])] : s.filter((x) => x !== to && !subs.includes(x))));
   }
   async function save(tabs: string[] | null) {
-    const { error } = await (supabase as any).rpc("set_user_tabs", { _user: user.id, _tabs: tabs });
+    const { error } = roleOnly
+      ? await (supabase as any).rpc("set_role_tabs", { _role: user.role, _tabs: tabs })
+      : await (supabase as any).rpc("set_user_tabs", { _user: user.id, _tabs: tabs });
     if (error) return toast.error("Não foi possível salvar.");
     toast.success("Abas atualizadas");
     onSaved();
@@ -139,7 +143,7 @@ function TabsDialog({ user, current, onClose, onSaved }: { user: U; current: str
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
-        <DialogHeader><DialogTitle>Abas de {user.full_name || user.email}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{roleOnly ? `Abas do perfil ${ROLES[user.role]}` : `Abas de ${user.full_name || user.email}`}</DialogTitle></DialogHeader>
         <p className="text-sm text-muted-foreground">Marque as abas e menus que esta pessoa pode ver ({ROLES[user.role]}).</p>
         <div className="flex gap-2 text-xs">
           <button className="text-primary hover:underline" onClick={() => setSel(allKeys)}>Marcar todas</button>
@@ -202,7 +206,7 @@ function InfoDialog({ user, onClose, onSaved }: { user: U; onClose: () => void; 
 
 function NewUser({ onDone }: { onDone: () => void }) {
   const create = useServerFn(createUser);
-  const [f, setF] = useState({ full_name: "", agency_name: "", email: "", password: "", role: "client" as "client" | "admin" | "master" });
+  const [f, setF] = useState({ full_name: "", agency_name: "", email: "", password: "", role: "client" as "client" | "admin" | "master" | "user" });
   const [busy, setBusy] = useState(false);
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -286,6 +290,36 @@ function PauseList({ users, onPause, onBlock }: { users: U[]; onPause: (u: U, p:
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function RoleProfiles() {
+  const qc = useQueryClient();
+  const { data: map = {} } = useQuery({
+    queryKey: ["role-tabs"],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("role_tab_access").select("role,tabs");
+      return Object.fromEntries(((data ?? []) as { role: string; tabs: string[] }[]).map((r) => [r.role, r.tabs])) as Record<string, string[]>;
+    },
+  });
+  const [edit, setEdit] = useState<string | null>(null);
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">Defina quais abas cada perfil vê por padrão. Ajustes feitos por pessoa (botão Abas em Editar) têm prioridade.</p>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Object.entries(ROLES).map(([k, v]) => {
+          const pages = map[k]?.filter((x) => !x.includes("#"));
+          return (
+            <div key={k} className="glass space-y-3 rounded-xl p-5">
+              <div className="flex items-center gap-2 font-semibold"><Shield className="h-4 w-4 text-primary" /> {v}</div>
+              <p className="text-sm text-muted-foreground">{k === "master" ? "Vê todas as abas sempre." : pages ? `${pages.length} aba(s) liberada(s)` : "Todas as abas do perfil"}</p>
+              <Button variant="outline" size="sm" disabled={k === "master"} onClick={() => setEdit(k)}><LayoutGrid /> Editar abas</Button>
+            </div>
+          );
+        })}
+      </div>
+      {edit && <TabsDialog roleOnly user={{ id: edit, email: null, full_name: ROLES[edit], agency_name: null, approved: true, role: edit, created_at: "", paused: false }} current={map[edit] ?? null} onClose={() => setEdit(null)} onSaved={() => { qc.invalidateQueries({ queryKey: ["role-tabs"] }); qc.invalidateQueries({ queryKey: ["access"] }); setEdit(null); }} />}
     </div>
   );
 }
