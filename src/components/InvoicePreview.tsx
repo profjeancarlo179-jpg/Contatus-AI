@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { InvoicePrint, printInvoicePaper, usePaymentSettings } from "@/components/InvoicePrint";
 import type { Invoice } from "@/components/InvoiceCard";
 
-export function InvoicePreviewButton({ i, clientName }: { i: Invoice; clientName: string }) {
+export function InvoicePreviewButton({ i, clientName, clientDoc }: { i: Invoice; clientName: string; clientDoc?: string }) {
   const { data: settings } = usePaymentSettings();
   const [open, setOpen] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
@@ -57,7 +57,7 @@ export function InvoicePreviewButton({ i, clientName }: { i: Invoice; clientName
         </DialogHeader>
         <div className="max-h-[70vh] overflow-y-auto">
           <div className="inv-screen printing-source" data-invoice={i.id} ref={screenRef}>
-            <InvoicePrint i={i} s={settings} clientName={clientName} />
+            <InvoicePrint i={i} s={settings} clientName={clientName} clientDoc={clientDoc} />
           </div>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
