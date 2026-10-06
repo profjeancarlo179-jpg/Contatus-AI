@@ -219,13 +219,14 @@ function AdmView() {
 
   async function save(release: boolean) {
     if (!clientId || !title.trim()) return toast.error("Escolha o cliente e dê um título");
+    if (networks.length === 0) return toast.error("Escolha pelo menos uma rede social");
     setSaving(true);
     const clean = Object.fromEntries(Object.entries(metrics).filter(([, v]) => v !== "").map(([k, v]) => [k, Number(v.replace(",", "."))]));
-    const { error } = await supabase.from("reports").insert({ client_id: clientId, title, period: period || null, network, metrics: clean, notes: notes || null, released: release });
+    const { error } = await supabase.from("reports").insert({ client_id: clientId, title, period: period || null, network: networks.join(", "), metrics: clean, notes: notes || null, released: release });
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success(release ? "Relatório liberado para o cliente" : "Relatório salvo como rascunho");
-    setTitle(""); setPeriod(""); setMetrics({}); setNotes(""); setTotal("");
+    setTitle(""); setPeriod(""); setMetrics({}); setNotes(""); setTotal(""); setNetworks(["Instagram"]);
     qc.invalidateQueries({ queryKey: ["reports"] });
   }
 
@@ -254,12 +255,31 @@ function AdmView() {
         <div className="space-y-1.5"><Label>Título</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Relatório mensal — Setembro" /></div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5"><Label>Período</Label><Input value={period} onChange={(e) => setPeriod(e.target.value)} placeholder="01/09 a 30/09" /></div>
-          <div className="space-y-1.5">
-            <Label>Rede social</Label>
-            <Select value={network} onValueChange={setNetwork}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{["Instagram", "Facebook", "TikTok", "LinkedIn", "YouTube"].map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}</SelectContent>
-            </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Redes sociais (marque uma ou mais)</Label>
+          <div className="flex flex-wrap gap-2">
+            {allNetworks.map((n) => {
+              const on = networks.includes(n);
+              const custom = !DEFAULT_NETWORKS.includes(n);
+              return (
+                <div key={n} className="flex items-center">
+                  <button type="button" onClick={() => toggleNetwork(n)}
+                    className={`rounded-full border px-3 py-1 text-xs transition ${on ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:border-primary/50"}`}>
+                    {n}
+                  </button>
+                  {custom && (
+                    <button type="button" onClick={() => removeCustomNetwork(n)} title="Remover rede" className="-ml-1.5 rounded-full p-0.5 text-muted-foreground hover:text-destructive">
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex gap-2">
+            <Input value={newNetwork} onChange={(e) => setNewNetwork(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addNetwork(); } }} placeholder="Adicionar outra rede (ex: Pinterest)" />
+            <Button type="button" variant="secondary" onClick={addNetwork}><Plus className="h-4 w-4" /></Button>
           </div>
         </div>
         <div className="space-y-1.5 rounded-lg border border-border bg-muted/30 p-3">
