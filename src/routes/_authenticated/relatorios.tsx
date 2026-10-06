@@ -361,7 +361,7 @@ function AdmView() {
           <Label>Número total geral da campanha</Label>
           <div className="flex gap-2">
             <Input inputMode="numeric" value={total} onChange={(e) => setTotal(e.target.value.replace(/\D/g, ""))} placeholder="Ex: 25000" />
-            <Button type="button" variant="secondary" onClick={() => { const t = Number(total); if (!t) return toast.error("Insira um total válido"); setMetrics(distribute(t)); setX({ ages: genAges() }); toast.success("Métricas e faixa etária (60% homens / 40% mulheres) geradas"); }}>Distribuir tudo</Button>
+            <Button type="button" variant="secondary" onClick={() => { const t = Number(total); if (!t) return toast.error("Insira um total válido"); setMetrics(distribute(t)); setX({ ages: genAges(60) }); toast.success("Métricas e faixa etária geradas (60% homens / 40% mulheres — ajuste a divisão na seção 6. Público)"); }}>Distribuir tudo</Button>
           </div>
           <p className="text-xs text-muted-foreground">Ao alterar um campo, o restante do total é redistribuído entre os outros.</p>
         </div>
