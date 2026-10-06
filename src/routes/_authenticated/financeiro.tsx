@@ -76,21 +76,46 @@ function GerarFatura() {
   const [due, setDue] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [batch, setBatch] = useState(false);
+  const [startMonth, setStartMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [months, setMonths] = useState("12");
+  const [dueDay, setDueDay] = useState("5");
   const nameOf = (id: string) => { const c = clients.find((x) => x.id === id); return c?.full_name || c?.email || "Cliente"; };
+  const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  function batchDates(): string[] {
+    const [y, m] = startMonth.split("-").map(Number);
+    const n = Math.min(36, Math.max(0, Math.floor(Number(months) || 0)));
+    const day = Math.min(31, Math.max(1, Math.floor(Number(dueDay) || 1)));
+    if (!y || !m) return [];
+    return Array.from({ length: n }, (_, k) => {
+      const yy = y + Math.floor((m - 1 + k) / 12), mm = ((m - 1 + k) % 12) + 1;
+      const last = new Date(yy, mm, 0).getDate();
+      return `${yy}-${String(mm).padStart(2, "0")}-${String(Math.min(day, last)).padStart(2, "0")}`;
+    });
+  }
 
   async function create(release: boolean) {
     const value = Number(amount.replace(",", "."));
     if (!clientId) return toast.error("Escolha o cliente");
     if (!description.trim()) return toast.error("Informe a descrição");
     if (!Number.isFinite(value) || value <= 0) return toast.error("Informe um valor válido");
+    const base = { client_id: clientId, amount: value, notes: notes.trim() || null, released: release };
+    let rows;
+    if (batch) {
+      const dates = batchDates();
+      if (!dates.length) return toast.error("Informe mês inicial e quantidade de meses");
+      rows = dates.map((d) => {
+        const [yy, mm] = d.split("-").map(Number);
+        return { ...base, description: `${description.trim()} — ${MONTHS[mm - 1]}/${yy}`, due_date: d };
+      });
+    } else {
+      rows = [{ ...base, description: description.trim(), due_date: due || null }];
+    }
     setSaving(true);
-    const { error } = await supabase.from("invoices").insert({
-      client_id: clientId, description: description.trim(), amount: value,
-      due_date: due || null, notes: notes.trim() || null, released: release,
-    });
+    const { error } = await supabase.from("invoices").insert(rows);
     setSaving(false);
     if (error) return toast.error(error.message);
-    toast.success(release ? "Fatura gerada e liberada" : "Fatura salva como rascunho");
+    toast.success(batch ? `${rows.length} faturas geradas${release ? " e liberadas" : " como rascunho"}` : release ? "Fatura gerada e liberada" : "Fatura salva como rascunho");
     setDescription(""); setAmount(""); setDue(""); setNotes("");
     qc.invalidateQueries({ queryKey: ["invoices"] });
   }
@@ -126,10 +151,29 @@ function GerarFatura() {
           {clients.length === 0 && <p className="text-xs text-muted-foreground">Nenhum usuário com perfil Cliente ainda.</p>}
         </div>
         <div className="space-y-1.5"><Label>Descrição</Label><Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Ex.: Gestão de Instagram — Outubro" /></div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5"><Label>Valor (R$)</Label><Input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0,00" /></div>
-          <div className="space-y-1.5"><Label>Vencimento</Label><Input type="date" value={due} onChange={(e) => setDue(e.target.value)} /></div>
+        <div className="flex gap-1 rounded-lg bg-muted/40 p-1 text-sm">
+          <button type="button" onClick={() => setBatch(false)} className={`flex-1 rounded-md px-3 py-1.5 ${!batch ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>Fatura única</button>
+          <button type="button" onClick={() => setBatch(true)} className={`flex-1 rounded-md px-3 py-1.5 ${batch ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>Em lote (mensal)</button>
         </div>
+        {!batch ? (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5"><Label>Valor (R$)</Label><Input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0,00" /></div>
+            <div className="space-y-1.5"><Label>Vencimento</Label><Input type="date" value={due} onChange={(e) => setDue(e.target.value)} /></div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5"><Label>Valor mensal (R$)</Label><Input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0,00" /></div>
+              <div className="space-y-1.5"><Label>Dia do vencimento</Label><Input type="number" min={1} max={31} value={dueDay} onChange={(e) => setDueDay(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Mês inicial</Label><Input type="month" value={startMonth} onChange={(e) => setStartMonth(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Quantidade de meses</Label><Input type="number" min={1} max={36} value={months} onChange={(e) => setMonths(e.target.value)} /></div>
+            </div>
+            {batchDates().length > 0 && (
+              <p className="text-xs text-muted-foreground">Vencimentos: {batchDates().map((d) => d.split("-").reverse().join("/")).join(", ")}</p>
+            )}
+            <p className="text-xs text-muted-foreground">O nome do mês é adicionado à descrição de cada fatura.</p>
+          </div>
+        )}
         <div className="space-y-1.5"><Label>Observações</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Chave Pix, dados bancários, detalhes…" /></div>
         <div className="flex gap-2">
           <Button variant="outline" disabled={saving} onClick={() => create(false)}>Salvar rascunho</Button>
