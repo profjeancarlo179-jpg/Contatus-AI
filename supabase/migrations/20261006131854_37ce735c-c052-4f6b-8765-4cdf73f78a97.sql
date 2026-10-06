@@ -1,0 +1,2 @@
+ALTER TABLE public.contents ALTER COLUMN share_token SET DEFAULT substr(md5(random()::text || clock_timestamp()::text), 1, 8);
+UPDATE public.contents SET share_token = substr(md5(random()::text || id::text), 1, 8) WHERE length(share_token) > 8;
