@@ -443,8 +443,7 @@ function ExtraFields({ extra, setX }: { extra: ReportExtra; setX: (p: Partial<Re
       <CitySearch rows={extra.cities ?? []} onChange={(cities) => setX({ cities })} />
       <PctList label="Cidades escolhidas (ajuste o %)" placeholder="Cáceres, MT" rows={extra.cities ?? []} onChange={(cities) => setX({ cities })} />
       <PctList label="Principais países" placeholder="Brasil" rows={extra.countries ?? []} onChange={(countries) => setX({ countries })} />
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between"><Label className="text-xs">Faixa etária e gênero (%) — 60% homens / 40% mulheres</Label><Button type="button" size="sm" variant="ghost" onClick={() => setX({ ages: genAges() })}>Gerar</Button></div>
+      <GenderAges extra={extra} setX={setX} />
         <div className="grid grid-cols-[60px_1fr_1fr] gap-1 text-[11px] text-muted-foreground"><span>Idade</span><span>Mulheres</span><span>Homens</span></div>
         {(extra.ages ?? []).map((a, i) => (
           <div key={a.range} className="grid grid-cols-[60px_1fr_1fr] items-center gap-1">
