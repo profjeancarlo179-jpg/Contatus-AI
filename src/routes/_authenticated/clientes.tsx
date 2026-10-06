@@ -44,7 +44,7 @@ type Client = {
   id: string; name: string; segment: string | null; profile_description: string | null; logo_path: string | null;
   brand_arts: string[]; brand_colors: string | null; brand_fonts: string | null;
   resp_name: string | null; resp_role: string | null; resp_email: string | null; resp_phone: string | null; resp_document: string | null;
-  socials: Record<string, string>; notes: string | null; user_id: string | null; user_ids: string[];
+  socials: Record<string, string>; observations: string | null; notes: string | null; user_id: string | null; user_ids: string[];
 };
 
 const EMPTY: Omit<Client, "id"> = {
