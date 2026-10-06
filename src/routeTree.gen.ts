@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedAnaliseRouteImport } from './routes/_authenticated/analise'
 import { Route as AuthenticatedAprovacaoRouteImport } from './routes/_authenticated/aprovacao'
 import { Route as AuthenticatedArquivosRouteImport } from './routes/_authenticated/arquivos'
 import { Route as AuthenticatedCriarRouteImport } from './routes/_authenticated/criar'
@@ -25,6 +26,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAnaliseRoute = AuthenticatedAnaliseRouteImport.update({
+  id: '/analise',
+  path: '/analise',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAprovacaoRoute = AuthenticatedAprovacaoRouteImport.update({
   id: '/aprovacao',
@@ -54,6 +60,7 @@ const AprovarTokenRoute = AprovarTokenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analise': typeof AuthenticatedAnaliseRoute
   '/aprovacao': typeof AuthenticatedAprovacaoRoute
   '/arquivos': typeof AuthenticatedArquivosRoute
   '/criar': typeof AuthenticatedCriarRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analise': typeof AuthenticatedAnaliseRoute
   '/aprovacao': typeof AuthenticatedAprovacaoRoute
   '/arquivos': typeof AuthenticatedArquivosRoute
   '/criar': typeof AuthenticatedCriarRoute
@@ -72,6 +80,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/analise': typeof AuthenticatedAnaliseRoute
   '/_authenticated/aprovacao': typeof AuthenticatedAprovacaoRoute
   '/_authenticated/arquivos': typeof AuthenticatedArquivosRoute
   '/_authenticated/criar': typeof AuthenticatedCriarRoute
@@ -81,14 +90,27 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/aprovacao' | '/arquivos' | '/criar' | '/painel' | '/aprovar/$token'
+    | '/'
+    | '/analise'
+    | '/aprovacao'
+    | '/arquivos'
+    | '/criar'
+    | '/painel'
+    | '/aprovar/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/aprovacao' | '/arquivos' | '/criar' | '/painel' | '/aprovar/$token'
+    | '/'
+    | '/analise'
+    | '/aprovacao'
+    | '/arquivos'
+    | '/criar'
+    | '/painel'
+    | '/aprovar/$token'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/_authenticated/analise'
     | '/_authenticated/aprovacao'
     | '/_authenticated/arquivos'
     | '/_authenticated/criar'
@@ -117,6 +139,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/analise': {
+      id: '/_authenticated/analise'
+      path: '/analise'
+      fullPath: '/analise'
+      preLoaderRoute: typeof AuthenticatedAnaliseRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/aprovacao': {
       id: '/_authenticated/aprovacao'
@@ -157,6 +186,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAnaliseRoute: typeof AuthenticatedAnaliseRoute
   AuthenticatedAprovacaoRoute: typeof AuthenticatedAprovacaoRoute
   AuthenticatedArquivosRoute: typeof AuthenticatedArquivosRoute
   AuthenticatedCriarRoute: typeof AuthenticatedCriarRoute
@@ -164,6 +194,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAnaliseRoute: AuthenticatedAnaliseRoute,
   AuthenticatedAprovacaoRoute: AuthenticatedAprovacaoRoute,
   AuthenticatedArquivosRoute: AuthenticatedArquivosRoute,
   AuthenticatedCriarRoute: AuthenticatedCriarRoute,
