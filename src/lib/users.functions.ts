@@ -11,7 +11,7 @@ export const createUser = createServerFn({ method: "POST" })
         password: z.string().min(6).max(72),
         full_name: z.string().trim().max(120).optional(),
         agency_name: z.string().trim().max(120).optional(),
-        role: z.enum(["client", "admin", "master"]),
+        role: z.enum(["client", "admin", "master", "user"]),
       })
       .parse(d),
   )

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export const ROLE_LABEL: Record<string, string> = { client: "Cliente", admin: "Adm", master: "Adm Master" };
+export const ROLE_LABEL: Record<string, string> = { client: "Cliente", admin: "Adm", master: "Adm Master", user: "Usuário" };
 
 /** Tabs a master can grant/remove per user. Permissões is always master-only. */
 export const APP_TABS: { to: string; label: string; only?: "staff" | "master" }[] = [
@@ -36,6 +36,10 @@ export function useAccess() {
       if (u.user) {
         const { data: t } = await (supabase as any).from("user_tab_access").select("tabs").eq("user_id", u.user.id).maybeSingle();
         tabs = t?.tabs ?? null;
+        if (!tabs) {
+          const { data: r } = await (supabase as any).from("role_tab_access").select("tabs").eq("role", base.role).maybeSingle();
+          tabs = r?.tabs ?? null;
+        }
       }
       return { ...base, tabs };
     },
