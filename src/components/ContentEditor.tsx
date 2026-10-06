@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { InstagramPreview } from "@/components/InstagramPreview";
-import { FORMAT_LABEL, uploadMedia, useMediaUrls, type Content } from "@/lib/content";
+import { FORMAT_LABEL, fitImageToRatio, uploadMedia, useMediaUrls, type Content } from "@/lib/content";
 
 type ClientOption = { id: string; name: string; socials: Record<string, string> | null };
 
@@ -57,7 +57,9 @@ export function ContentEditor({
     if (!files?.length) return;
     setUploading(true);
     try {
-      const paths = await Promise.all(Array.from(files).map(uploadMedia));
+      // Ajusta a imagem automaticamente ao formato do mockup (1:1, 4:5 ou 9:16).
+      const adapted = await Promise.all(Array.from(files).map((f) => fitImageToRatio(f, d.format)));
+      const paths = await Promise.all(adapted.map(uploadMedia));
       set("image_urls", multi ? [...d.image_urls, ...paths].slice(0, 10) : [paths[0]]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha no upload");
@@ -136,6 +138,7 @@ export function ContentEditor({
             {uploading ? "Enviando…" : "Clique para enviar imagem ou vídeo"}
             <input type="file" accept="image/*,video/*" multiple={multi} className="hidden" onChange={(e) => onFiles(e.target.files)} />
           </label>
+          <p className="text-xs text-muted-foreground">A imagem é ajustada automaticamente ao formato escolhido ({FORMAT_LABEL[d.format]}) para preencher o mockup do celular.</p>
           {d.image_urls.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {d.image_urls.map((p, k) => (

@@ -87,6 +87,34 @@ export async function fetchContents(): Promise<Content[]> {
   return (data ?? []) as Content[];
 }
 
+export const RATIO_BY_FORMAT: Record<string, number> = { feed: 1, carousel: 4 / 5, reels: 9 / 16, stories: 9 / 16 };
+
+/** Center-crops an image to the selected format's ratio so it fills the phone mockup exactly. */
+export async function fitImageToRatio(file: File, format: string): Promise<File> {
+  if (!file.type.startsWith("image/")) return file;
+  const ratio = RATIO_BY_FORMAT[format] ?? 1;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const cropW = Math.min(bitmap.width, bitmap.height * ratio);
+    const cropH = Math.min(bitmap.height, bitmap.width / ratio);
+    const scale = Math.min(1, 1440 / Math.max(cropW, cropH));
+    const w = Math.max(1, Math.round(cropW * scale));
+    const h = Math.max(1, Math.round(cropH * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, (bitmap.width - cropW) / 2, (bitmap.height - cropH) / 2, cropW, cropH, 0, 0, w, h);
+    bitmap.close?.();
+    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/jpeg", 0.92));
+    if (!blob) return file;
+    return new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" });
+  } catch {
+    return file;
+  }
+}
+
 export async function uploadMedia(file: File): Promise<string> {
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) throw new Error("Não autenticado");
