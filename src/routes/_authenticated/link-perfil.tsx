@@ -72,7 +72,7 @@ function ProfileLinks() {
           <Button variant={p.paused ? "neon" : "destructive"} onClick={() => togglePause(p)}>{p.paused ? <><Play /> Reativar</> : <><Pause /> Pausar</>}</Button>
         </div>
       </div>)}</div>) : (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página salva. Crie uma na aba Novo.</p> :
-      <RedirectPreview pages={pages} previewId={previewId} onSelect={setPreviewId} />)}
+      <RedirectPreview pages={pages} />)}
   </div>;
 }
 function RedirectPreview({ pages }: { pages: Bio[] }) {
