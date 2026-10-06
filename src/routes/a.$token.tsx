@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { REJECTION_REASONS, timeLeft } from "@/lib/content";
 
-export const Route = createFileRoute("/aprovar/$token")({
+export const Route = createFileRoute("/a/$token")({
   ssr: false,
   head: () => ({
     meta: [

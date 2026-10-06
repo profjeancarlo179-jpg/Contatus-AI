@@ -104,7 +104,7 @@ function SendCard({ content }: { content: Content }) {
     const t = setInterval(() => tick((x) => x + 1), 30000);
     return () => clearInterval(t);
   }, []);
-  const link = typeof window !== "undefined" ? `${window.location.origin}/aprovar/${content.share_token}` : "";
+  const link = `https://contatus-ai.lovable.app/a/${content.share_token}`;
 
   async function sendEmail() {
     const to = email.trim();
