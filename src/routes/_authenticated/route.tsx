@@ -26,9 +26,9 @@ const TABS = [
   { to: "/analise", label: "Análise & Conexão", icon: LineChart },
 ] as const;
 
-export const ROLE_LABEL: Record<string, string> = { client: "Cliente", admin: "Adm", master: "Adm Master" };
+const ROLE_LABEL: Record<string, string> = { client: "Cliente", admin: "Adm", master: "Adm Master" };
 
-export function useAccess() {
+function useAccess() {
   return useQuery({
     queryKey: ["access"],
     queryFn: async () => {
