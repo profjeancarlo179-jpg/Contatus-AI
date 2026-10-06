@@ -20,7 +20,42 @@ export type Content = {
   share_token: string;
   created_at: string;
   updated_at: string;
+  format: string;
+  audio: string | null;
+  location: string | null;
+  client_email: string | null;
+  sent_at: string | null;
+  expires_at: string | null;
+  rejection_reasons: string[];
+  decided_at: string | null;
+  auto_approved: boolean;
 };
+
+export const FORMAT_LABEL: Record<string, string> = {
+  feed: "Post único (1:1)",
+  carousel: "Carrossel (4:5)",
+  reels: "Reels (9:16)",
+  stories: "Stories (9:16)",
+};
+
+export const REJECTION_REASONS = [
+  "Não gostei das cores",
+  "Texto muito longo",
+  "Muito simples",
+  "Imagem de baixa qualidade",
+  "Fora da identidade da marca",
+  "Outro",
+];
+
+export function timeLeft(expires: string | null) {
+  if (!expires) return null;
+  const ms = new Date(expires).getTime() - Date.now();
+  if (ms <= 0) return "expirado";
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  return `${d}d ${h}h ${m}m`;
+}
 
 export const KIND_LABEL: Record<string, string> = {
   post: "Post",
@@ -43,6 +78,7 @@ export const STATUS_CLASS: Record<string, string> = {
 };
 
 export async function fetchContents(): Promise<Content[]> {
+  await supabase.rpc("auto_approve_expired");
   const { data, error } = await supabase
     .from("contents")
     .select("*")
