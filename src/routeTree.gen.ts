@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAnaliseRouteImport } from './routes/_authenticated/analise'
 import { Route as AuthenticatedAprovacaoRouteImport } from './routes/_authenticated/aprovacao'
 import { Route as AuthenticatedArquivosRouteImport } from './routes/_authenticated/arquivos'
+import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedCriacaoRouteImport } from './routes/_authenticated/criacao'
 import { Route as AuthenticatedCriarRouteImport } from './routes/_authenticated/criar'
@@ -44,6 +45,11 @@ const AuthenticatedAprovacaoRoute = AuthenticatedAprovacaoRouteImport.update({
 const AuthenticatedArquivosRoute = AuthenticatedArquivosRouteImport.update({
   id: '/arquivos',
   path: '/arquivos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedConfiguracoesRoute =
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/analise': typeof AuthenticatedAnaliseRoute
   '/aprovacao': typeof AuthenticatedAprovacaoRoute
   '/arquivos': typeof AuthenticatedArquivosRoute
+  '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/criacao': typeof AuthenticatedCriacaoRoute
   '/criar': typeof AuthenticatedCriarRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/analise': typeof AuthenticatedAnaliseRoute
   '/aprovacao': typeof AuthenticatedAprovacaoRoute
   '/arquivos': typeof AuthenticatedArquivosRoute
+  '/clientes': typeof AuthenticatedClientesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/criacao': typeof AuthenticatedCriacaoRoute
   '/criar': typeof AuthenticatedCriarRoute
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/_authenticated/analise': typeof AuthenticatedAnaliseRoute
   '/_authenticated/aprovacao': typeof AuthenticatedAprovacaoRoute
   '/_authenticated/arquivos': typeof AuthenticatedArquivosRoute
+  '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/criacao': typeof AuthenticatedCriacaoRoute
   '/_authenticated/criar': typeof AuthenticatedCriarRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/analise'
     | '/aprovacao'
     | '/arquivos'
+    | '/clientes'
     | '/configuracoes'
     | '/criacao'
     | '/criar'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/analise'
     | '/aprovacao'
     | '/arquivos'
+    | '/clientes'
     | '/configuracoes'
     | '/criacao'
     | '/criar'
@@ -158,6 +169,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analise'
     | '/_authenticated/aprovacao'
     | '/_authenticated/arquivos'
+    | '/_authenticated/clientes'
     | '/_authenticated/configuracoes'
     | '/_authenticated/criacao'
     | '/_authenticated/criar'
@@ -208,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/arquivos'
       fullPath: '/arquivos'
       preLoaderRoute: typeof AuthenticatedArquivosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clientes': {
+      id: '/_authenticated/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof AuthenticatedClientesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/configuracoes': {
@@ -266,6 +285,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnaliseRoute: typeof AuthenticatedAnaliseRoute
   AuthenticatedAprovacaoRoute: typeof AuthenticatedAprovacaoRoute
   AuthenticatedArquivosRoute: typeof AuthenticatedArquivosRoute
+  AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedCriacaoRoute: typeof AuthenticatedCriacaoRoute
   AuthenticatedCriarRoute: typeof AuthenticatedCriarRoute
@@ -278,6 +298,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnaliseRoute: AuthenticatedAnaliseRoute,
   AuthenticatedAprovacaoRoute: AuthenticatedAprovacaoRoute,
   AuthenticatedArquivosRoute: AuthenticatedArquivosRoute,
+  AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedCriacaoRoute: AuthenticatedCriacaoRoute,
   AuthenticatedCriarRoute: AuthenticatedCriarRoute,
