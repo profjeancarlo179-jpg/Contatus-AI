@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ImageIcon, Repeat, Trash2 } from "lucide-react";
+import { Clock, Copy, ExternalLink, ImageIcon, Repeat, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchContents, FORMAT_LABEL, isVideo, useMediaUrls, type Content } from "@/lib/content";
+import { fetchContents, FORMAT_LABEL, isVideo, timeLeft, useMediaUrls, type Content } from "@/lib/content";
 import { StatusBadge } from "@/components/StatusBadge";
 import { FeedbackCard } from "@/components/FeedbackCard";
 import { ContentEditor } from "@/components/ContentEditor";
