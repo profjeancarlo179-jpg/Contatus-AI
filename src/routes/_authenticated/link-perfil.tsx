@@ -38,11 +38,11 @@ function ProfileLinks() {
   } });
   const [tab, setTab] = useState<"novo" | "editar" | "arquivo" | "redirect">("novo");
   const { data: clients = [] } = useQuery({ queryKey: ["bio-clients"], queryFn: async () => {
-    const { data, error } = await supabase.rpc("list_clients");
-    if (error) return [] as { id: string; full_name: string | null; agency_name: string | null }[];
+    const { data, error } = await supabase.from("clients").select("id, name").order("name");
+    if (error) return [] as { id: string; name: string }[];
     return data;
   } });
-  const clientLabel = (id?: string | null) => { const c = clients.find(x => x.id === id); return c ? (c.full_name || c.agency_name || "Cliente") : null; };
+  const clientLabel = (id?: string | null) => clients.find(x => x.id === id)?.name ?? null;
   const editId = selected;
   const current = pages.find(p => p.id === editId);
   const refresh = () => qc.invalidateQueries({ queryKey: ["bio-pages"] });
@@ -97,7 +97,7 @@ function RedirectPreview({ pages }: { pages: Bio[] }) {
     </div>
   </div>;
 }
-function BioEditor({ initial, clients, onSaved, onDeleted }: { initial?: Bio; clients: { id: string; full_name: string | null; agency_name: string | null }[]; onSaved: (id: string) => Promise<void>; onDeleted: () => Promise<void> }) {
+function BioEditor({ initial, clients, onSaved, onDeleted }: { initial?: Bio; clients: { id: string; name: string }[]; onSaved: (id: string) => Promise<void>; onDeleted: () => Promise<void> }) {
   const [bio, setBio] = useState<Bio>(initial ?? empty());
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -126,9 +126,9 @@ function BioEditor({ initial, clients, onSaved, onDeleted }: { initial?: Bio; cl
           <Button variant="outline" asChild><label className="cursor-pointer"><Upload />{uploading ? "Carregando…" : "Escolher foto"}<input aria-label="Foto do perfil" type="file" accept="image/*" className="hidden" disabled={uploading} onChange={async e => { const file = e.target.files?.[0]; if (!file) return; setUploading(true); try { change({ photo: await bioPhoto(file) }); } catch (err) { toast.error(err instanceof Error ? err.message : "Falha na foto"); } finally { setUploading(false); } }} /></label></Button>
           {bio.photo && <Button variant="ghost" size="icon" aria-label="Remover foto" title="Remover foto" onClick={() => change({ photo: "" })}><Trash2 /></Button>}
         </div>
-        <div className="space-y-2"><Label htmlFor="bio-client">Cliente vinculado</Label><select id="bio-client" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs" value={bio.clientId ?? ""} onChange={e => { const v = e.target.value || null; change({ clientId: v }); if (!initial && v && !bio.name.trim()) { const c = clients.find(x => x.id === v); if (c) change({ clientId: v, name: c.full_name || c.agency_name || "" }); } }}>
+        <div className="space-y-2"><Label htmlFor="bio-client">Cliente vinculado</Label><select id="bio-client" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs" value={bio.clientId ?? ""} onChange={e => { const v = e.target.value || null; change({ clientId: v }); if (!initial && v && !bio.name.trim()) { const c = clients.find(x => x.id === v); if (c) change({ clientId: v, name: c.name }); } }}>
           <option value="">Nenhum (página sem cliente)</option>
-          {clients.map(c => <option key={c.id} value={c.id}>{c.full_name || c.agency_name || c.id}</option>)}
+          {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select></div>
         <div className="space-y-2"><Label htmlFor="bio-name">Nome do perfil</Label><Input id="bio-name" maxLength={100} value={bio.name} onChange={e => change({ name: e.target.value })} /></div>
         <div className="space-y-2"><Label htmlFor="bio-description">Descrição</Label><Textarea id="bio-description" maxLength={500} rows={3} value={bio.description} onChange={e => change({ description: e.target.value })} /></div>
