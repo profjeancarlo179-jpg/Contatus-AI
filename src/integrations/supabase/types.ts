@@ -259,6 +259,48 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          amount: number
+          author_id: string
+          client_id: string
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          notes: string | null
+          released: boolean
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          author_id?: string
+          client_id: string
+          created_at?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          released?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          author_id?: string
+          client_id?: string
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          released?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           agency_name: string | null
