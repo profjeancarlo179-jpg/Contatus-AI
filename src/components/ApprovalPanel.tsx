@@ -39,6 +39,7 @@ export function ApprovalPanel({ token, embedded = false }: { token: string; embe
     if (error) return toast.error("Não foi possível enviar. Tente novamente.");
     setMode("none");
     qc.invalidateQueries({ queryKey: ["shared", token] });
+    qc.invalidateQueries({ queryKey: ["my-pending"] });
   }
 
   if (isLoading) return <div className="grid min-h-[40vh] place-items-center text-muted-foreground">Carregando…</div>;
