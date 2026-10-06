@@ -7,3 +7,7 @@
 - [x] Pré-visualizar & Aprovação (simulador Instagram + link público com aprovação dupla)
 - [x] Arquivos com filtros
 - [x] Análise de perfil por IA + ponte Meta (preparada, não conectada)
+- [ ] Simulador: formatos Post 1:1, Carrossel 4:5, Reels 9:16, Stories 9:16; legenda, áudio, localização
+- [ ] Envio: nome/e-mail do cliente, link /aprovar/:id, prazo 3 dias com contagem regressiva
+- [ ] Página cliente: Aprovar (PIN 4 dígitos) / Reprovar (motivos + texto)
+- [ ] Aprovação automática após 3 dias; selo e notas do cliente em Arquivos

@@ -53,18 +53,27 @@ export type Database = {
       contents: {
         Row: {
           art_approved: boolean | null
+          audio: string | null
+          auto_approved: boolean
           batch_id: string | null
           batch_label: string | null
           caption: string
           caption_approved: boolean | null
+          client_email: string | null
           client_name: string | null
           created_at: string
           day_number: number | null
+          decided_at: string | null
+          expires_at: string | null
           feedback: string | null
+          format: string
           hashtags: string
           id: string
           image_urls: string[]
           kind: string
+          location: string | null
+          rejection_reasons: string[]
+          sent_at: string | null
           share_token: string
           status: string
           title: string
@@ -73,18 +82,27 @@ export type Database = {
         }
         Insert: {
           art_approved?: boolean | null
+          audio?: string | null
+          auto_approved?: boolean
           batch_id?: string | null
           batch_label?: string | null
           caption?: string
           caption_approved?: boolean | null
+          client_email?: string | null
           client_name?: string | null
           created_at?: string
           day_number?: number | null
+          decided_at?: string | null
+          expires_at?: string | null
           feedback?: string | null
+          format?: string
           hashtags?: string
           id?: string
           image_urls?: string[]
           kind?: string
+          location?: string | null
+          rejection_reasons?: string[]
+          sent_at?: string | null
           share_token?: string
           status?: string
           title?: string
@@ -93,18 +111,27 @@ export type Database = {
         }
         Update: {
           art_approved?: boolean | null
+          audio?: string | null
+          auto_approved?: boolean
           batch_id?: string | null
           batch_label?: string | null
           caption?: string
           caption_approved?: boolean | null
+          client_email?: string | null
           client_name?: string | null
           created_at?: string
           day_number?: number | null
+          decided_at?: string | null
+          expires_at?: string | null
           feedback?: string | null
+          format?: string
           hashtags?: string
           id?: string
           image_urls?: string[]
           kind?: string
+          location?: string | null
+          rejection_reasons?: string[]
+          sent_at?: string | null
           share_token?: string
           status?: string
           title?: string
@@ -142,28 +169,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_approve_expired: { Args: never; Returns: undefined }
       get_shared_content: {
         Args: { _token: string }
         Returns: {
           agency_name: string
-          art_approved: boolean
+          audio: string
+          auto_approved: boolean
           caption: string
-          caption_approved: boolean
           client_name: string
-          feedback: string
+          expires_at: string
+          format: string
           hashtags: string
           id: string
           image_urls: string[]
           kind: string
+          location: string
           status: string
           title: string
         }[]
       }
-      submit_approval: {
+      submit_decision: {
         Args: {
-          _art: boolean
-          _caption: boolean
+          _approved: boolean
           _feedback: string
+          _reasons: string[]
           _token: string
         }
         Returns: undefined
