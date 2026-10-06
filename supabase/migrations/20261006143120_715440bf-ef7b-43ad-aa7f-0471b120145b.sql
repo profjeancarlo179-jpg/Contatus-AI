@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.my_access(), public.list_users(), public.set_user_paused(uuid,boolean), public.update_user_info(uuid,text,text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.my_access(), public.list_users(), public.set_user_paused(uuid,boolean), public.update_user_info(uuid,text,text) TO authenticated;

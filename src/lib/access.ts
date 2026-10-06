@@ -30,7 +30,7 @@ export function useAccess() {
     queryKey: ["access"],
     queryFn: async () => {
       const { data } = await supabase.rpc("my_access");
-      const base = (data?.[0] ?? { role: "client", approved: false }) as { role: string; approved: boolean };
+      const base = (data?.[0] ?? { role: "client", approved: false, paused: false }) as { role: string; approved: boolean; paused?: boolean };
       const { data: u } = await supabase.auth.getUser();
       let tabs: string[] | null = null;
       if (u.user) {
