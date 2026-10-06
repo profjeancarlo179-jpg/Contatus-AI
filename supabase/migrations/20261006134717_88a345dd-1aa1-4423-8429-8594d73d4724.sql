@@ -1,0 +1,5 @@
+ALTER TABLE public.bio_pages ADD COLUMN paused boolean NOT NULL DEFAULT false;
+CREATE OR REPLACE FUNCTION public.get_bio_page(_slug text) RETURNS TABLE (name text, description text, photo text, links jsonb, appearance jsonb) LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public AS $$ SELECT name, description, photo, links, appearance FROM public.bio_pages WHERE slug = _slug AND published = true AND paused = false LIMIT 1 $$;
+CREATE OR REPLACE FUNCTION public.bio_page_paused(_slug text) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$ SELECT EXISTS (SELECT 1 FROM public.bio_pages WHERE slug = _slug AND paused = true) $$;
+REVOKE ALL ON FUNCTION public.bio_page_paused(text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.bio_page_paused(text) TO anon, authenticated;

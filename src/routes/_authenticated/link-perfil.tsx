@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Copy, ExternalLink, Link2, Loader2, Plus, Save, Trash2, Upload } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, ExternalLink, Link2, Loader2, Pause, Play, Plus, Save, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BioPreview } from "@/components/BioPreview";
@@ -34,13 +34,32 @@ function ProfileLinks() {
     if (error) throw error;
     return (data ?? []) as unknown as Bio[];
   } });
-  const current = pages.find(p => p.id === selected);
+  const [tab, setTab] = useState<"novo" | "editar" | "arquivo">("novo");
+  const editId = selected !== "new" ? selected : pages[0]?.id ?? "new";
+  const current = pages.find(p => p.id === editId);
+  const refresh = () => qc.invalidateQueries({ queryKey: ["bio-pages"] });
+  async function togglePause(p: Bio & { paused?: boolean }) {
+    const { error } = await supabase.from("bio_pages").update({ paused: !p.paused } as never).eq("id", p.id!);
+    if (error) return toast.error("Não foi possível alterar");
+    toast.success(p.paused ? "Página reativada" : "Página pausada"); await refresh();
+  }
+  const tabs = [["novo", "Novo"], ["editar", "Editar"], ["arquivo", "Arquivo"]] as const;
   return <div className="space-y-6">
-    <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-3xl font-bold">Link do perfil</h1><Button variant="neon" onClick={() => setSelected("new")}><Plus /> Nova página</Button></div>
-    {isLoading ? <Loader2 className="animate-spin" /> : error ? <p className="text-destructive">Não foi possível carregar suas páginas.</p> : <>
-      {pages.length > 0 && <div className="flex flex-wrap gap-2">{pages.map(p => <Button key={p.id} variant={selected === p.id ? "secondary" : "ghost"} onClick={() => setSelected(p.id ?? "new")}><Link2 />{p.name}<span className={p.published ? "text-success" : "text-muted-foreground"}>· {p.published ? "Publicada" : "Rascunho"}</span></Button>)}</div>}
-      <BioEditor key={selected} initial={current} onSaved={async id => { await qc.invalidateQueries({ queryKey: ["bio-pages"] }); setSelected(id); }} onDeleted={async () => { setSelected("new"); await qc.invalidateQueries({ queryKey: ["bio-pages"] }); }} />
-    </>}
+    <h1 className="text-3xl font-bold">Link do perfil</h1>
+    <div className="flex gap-2 border-b border-border pb-2">{tabs.map(([k, l]) => <Button key={k} variant={tab === k ? "secondary" : "ghost"} onClick={() => setTab(k)}>{l}</Button>)}</div>
+    {isLoading ? <Loader2 className="animate-spin" /> : error ? <p className="text-destructive">Não foi possível carregar suas páginas.</p> : tab === "novo" ? (
+      <BioEditor key="new" onSaved={async id => { await refresh(); setSelected(id); setTab("editar"); }} onDeleted={async () => { await refresh(); }} />
+    ) : tab === "editar" ? (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página pronta ainda. Crie uma na aba Novo.</p> : <>
+      <div className="flex flex-wrap gap-2">{pages.map(p => <Button key={p.id} variant={editId === p.id ? "secondary" : "ghost"} onClick={() => setSelected(p.id ?? "new")}><Link2 />{p.name}<span className={p.published ? "text-success" : "text-muted-foreground"}>· {p.published ? "Publicada" : "Rascunho"}</span></Button>)}</div>
+      <BioEditor key={editId} initial={current} onSaved={async id => { await refresh(); setSelected(id); }} onDeleted={async () => { setSelected("new"); await refresh(); }} />
+    </>) : (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página salva.</p> :
+      <div className="space-y-3">{(pages as (Bio & { paused?: boolean })[]).map(p => <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
+        <div><p className="font-semibold">{p.name}</p><p className="text-sm text-muted-foreground">/b/{p.slug} · {p.paused ? <span className="text-destructive">Pausada</span> : p.published ? <span className="text-success">Pública</span> : "Rascunho"}</p></div>
+        <div className="flex gap-2">
+          <Button variant="ghost" onClick={() => { setSelected(p.id!); setTab("editar"); }}>Editar</Button>
+          <Button variant={p.paused ? "neon" : "destructive"} onClick={() => togglePause(p)}>{p.paused ? <><Play /> Reativar</> : <><Pause /> Pausar</>}</Button>
+        </div>
+      </div>)}</div>)}
   </div>;
 }
 function BioEditor({ initial, onSaved, onDeleted }: { initial?: Bio; onSaved: (id: string) => Promise<void>; onDeleted: () => Promise<void> }) {

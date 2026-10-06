@@ -58,6 +58,7 @@ export type Database = {
           id: string
           links: Json
           name: string
+          paused: boolean
           photo: string
           published: boolean
           slug: string
@@ -71,6 +72,7 @@ export type Database = {
           id?: string
           links?: Json
           name: string
+          paused?: boolean
           photo?: string
           published?: boolean
           slug: string
@@ -84,6 +86,7 @@ export type Database = {
           id?: string
           links?: Json
           name?: string
+          paused?: boolean
           photo?: string
           published?: boolean
           slug?: string
@@ -352,6 +355,7 @@ export type Database = {
     }
     Functions: {
       auto_approve_expired: { Args: never; Returns: undefined }
+      bio_page_paused: { Args: { _slug: string }; Returns: boolean }
       get_bio_page: {
         Args: { _slug: string }
         Returns: {
