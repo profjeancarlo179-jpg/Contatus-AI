@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { METRICS, GROUPS, mByKey, getExtra, emptyExtra, num, type ReportExtra, type PctRow } from "@/lib/report-metrics";
+import { ReportPreviewButton } from "@/components/ReportPreview";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
@@ -25,29 +27,10 @@ export const Route = createFileRoute("/_authenticated/relatorios")({
   component: Relatorios,
 });
 
-const METRICS: { key: string; label: string; suffix?: string; color?: string; short?: string; w?: number }[] = [
-  { key: "alcanceFb", label: "Alcance do Facebook", short: "FB Ads", color: "#1877f2", w: 0.10 },
-  { key: "alcanceIg", label: "Alcance do Instagram", short: "IG Ads", color: "#e1306c", w: 0.40 },
-  { key: "maps", label: "Buscas no Google Maps", short: "Google Maps", color: "#ea4335", w: 0.15 },
-  { key: "visualizacoes", label: "Visualizações totais", short: "Totais", color: "#2cb574", w: 0.12 },
-  { key: "visualizadores", label: "Visualizadores únicos", short: "Únicos", color: "#4c5fd7", w: 0.09 },
-  { key: "cliques", label: "Cliques no link", short: "Cliques link", color: "#f4b400", w: 0.03 },
-  { key: "linktree", label: "Visitas aos Contatos", short: "Contatos", color: "#39e587", w: 0.025 },
-  { key: "visitas", label: "Visitas ao perfil", short: "Visitas", color: "#1098ad", w: 0.04 },
-  { key: "seguidores", label: "Novos seguidores", short: "Seguidores", color: "#6f42c1", w: 0.03 },
-  { key: "interacoes", label: "Interações com o conteúdo", short: "Interações", color: "#fd7e14", w: 0.015 },
-];
-const GROUPS = [
-  { title: "1. Canais de alcance e descoberta", keys: ["alcanceFb", "alcanceIg", "maps"] },
-  { title: "2. Volume de visualizações", keys: ["visualizacoes", "visualizadores"] },
-  { title: "3. Cliques e direcionamento", keys: ["cliques", "linktree"] },
-  { title: "4. Engajamento e crescimento", keys: ["visitas", "seguidores", "interacoes"] },
-];
 const LEGACY: Record<string, string> = { followers: "Seguidores", new_followers: "Novos seguidores", reach: "Alcance", impressions: "Impressões", engagement: "Engajamento", likes: "Curtidas", comments: "Comentários", shares: "Compartilhamentos", saves: "Salvamentos", profile_visits: "Visitas ao perfil", link_clicks: "Cliques no link", posts: "Publicações" };
-const mByKey = Object.fromEntries(METRICS.map((m) => [m.key, m]));
 
 function distribute(total: number): Record<string, string> {
-  const ws = METRICS.map((m) => m.w! * (1 + (Math.random() * 0.4 - 0.2)));
+  const ws = METRICS.map((m) => m.w * (1 + (Math.random() * 0.4 - 0.2)));
   const sum = ws.reduce((a, b) => a + b, 0);
   let rest = total; const out: Record<string, string> = {};
   METRICS.forEach((m, i) => {
@@ -61,17 +44,17 @@ function distribute(total: number): Record<string, string> {
 function redistribute(total: number, key: string, value: number, cur: Record<string, string>): Record<string, string> {
   const v = Math.min(Math.max(0, value), total);
   const others = METRICS.filter((m) => m.key !== key);
-  const wsum = others.reduce((a, m) => a + m.w!, 0);
+  const wsum = others.reduce((a, m) => a + m.w, 0);
   let rest = total - v; const out: Record<string, string> = { ...cur, [key]: String(v) };
   others.forEach((m, i) => {
-    const n = i === others.length - 1 ? rest : Math.floor(((total - v) * m.w!) / wsum);
+    const n = i === others.length - 1 ? rest : Math.floor(((total - v) * m.w) / wsum);
     if (i < others.length - 1) rest -= n;
     out[m.key] = String(Math.max(0, n));
   });
   return out;
 }
 
-function GroupCharts({ metrics }: { metrics: Record<string, number | string> }) {
+function GroupCharts({ metrics }: { metrics: Record<string, unknown> }) {
   const groups = GROUPS.filter((g) => g.keys.some((k) => Number(metrics[k]) > 0));
   if (!groups.length) return null;
   return (
@@ -99,7 +82,7 @@ function GroupCharts({ metrics }: { metrics: Record<string, number | string> }) 
 
 type Report = {
   id: string; client_id: string; title: string; period: string | null; network: string;
-  metrics: Record<string, number | string>; notes: string | null; released: boolean; created_at: string;
+  metrics: Record<string, unknown>; notes: string | null; released: boolean; created_at: string;
 };
 type Client = { id: string; email: string | null; full_name: string | null; agency_name: string | null };
 
@@ -132,6 +115,12 @@ function fmt(v: unknown, suffix?: string) {
 }
 
 function ReportCard({ r, clientName, actions }: { r: Report; clientName?: string; actions?: React.ReactNode }) {
+  const x = getExtra(r.metrics);
+  const hasNew = METRICS.some((m) => r.metrics[m.key] !== undefined);
+  const total = METRICS.reduce((a, m) => a + num(r.metrics[m.key]), 0) || 1;
+  const legacy = Object.entries(LEGACY).filter(([k]) => r.metrics[k] !== undefined && r.metrics[k] !== "");
+  const cities = (x.cities ?? []).filter((c) => c.name);
+  const ages = (x.ages ?? []).filter((a) => a.f || a.m);
   return (
     <div className="glass rounded-xl p-6">
       <div className="flex flex-wrap items-start gap-3">
@@ -139,21 +128,104 @@ function ReportCard({ r, clientName, actions }: { r: Report; clientName?: string
         <div className="min-w-0 flex-1">
           <h3 className="text-lg font-semibold">{r.title}</h3>
           <p className="text-sm text-muted-foreground">
-            {r.network}{r.period ? ` · ${r.period}` : ""}{clientName ? ` · ${clientName}` : ""}
+            {r.network}{r.period ? ` · ${r.period}` : ""}{clientName ? ` · ${clientName}` : ""} · {new Date(r.created_at).toLocaleDateString("pt-BR")}
           </p>
         </div>
-        {actions}
+        <div className="flex flex-wrap items-center gap-2">
+          <ReportPreviewButton r={r} clientName={clientName} />
+          {actions}
+        </div>
       </div>
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {[...METRICS, ...Object.entries(LEGACY).map(([key, label]) => ({ key, label, suffix: key === "engagement" ? "%" : undefined }))].filter((m) => r.metrics[m.key] !== undefined && r.metrics[m.key] !== "").map((m) => (
-          <div key={m.key} className="rounded-lg border border-border bg-muted/30 p-3">
-            <div className="text-xs text-muted-foreground">{m.label}</div>
-            <div className="mt-1 font-display text-xl font-semibold">{fmt(r.metrics[m.key], m.suffix)}</div>
-          </div>
-        ))}
-      </div>
+      {hasNew && (
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {METRICS.filter((m) => r.metrics[m.key] !== undefined).map((m) => {
+            const v = num(r.metrics[m.key]); const g = x.growth?.[m.key];
+            return (
+              <div key={m.key} className="rounded-lg border border-border bg-muted/30 p-3" style={{ borderLeft: `3px solid ${m.color}` }}>
+                <div className="text-xs text-muted-foreground">{m.icon} {m.label}</div>
+                <div className="mt-1 font-display text-xl font-semibold">{v.toLocaleString("pt-BR")}</div>
+                {g && <div className={`text-xs font-semibold ${num(g) < 0 ? "text-destructive" : "text-success"}`}>{num(g) < 0 ? "↓" : "↑"} {g.replace("-", "")}%</div>}
+                <div className="mt-2 h-1 rounded bg-muted"><div className="h-1 rounded" style={{ width: `${Math.min(100, (v / total) * 200)}%`, background: m.color }} /></div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {legacy.length > 0 && (
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {legacy.map(([k, label]) => <div key={k} className="rounded-lg border border-border bg-muted/30 p-3"><div className="text-xs text-muted-foreground">{label}</div><div className="mt-1 font-display text-xl font-semibold">{fmt(r.metrics[k], k === "engagement" ? "%" : undefined)}</div></div>)}
+        </div>
+      )}
       <GroupCharts metrics={r.metrics} />
+      {(x.stories || x.posts || cities.length > 0 || ages.length > 0) && (
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          {(x.stories || x.posts) && (
+            <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <div className="mb-2 text-sm font-semibold">Conteúdo publicado: {num(x.stories) + num(x.posts)}</div>
+              {x.contentCompare && <div className="mb-2 inline-block rounded-full bg-success/15 px-2 py-0.5 text-[11px] text-success">{x.contentCompare}</div>}
+              {[["Stories", num(x.stories)], ["Posts", num(x.posts)]].map(([l, v]) => (
+                <div key={l} className="mb-2 text-xs">{l} <b className="float-right">{v}</b>
+                  <div className="mt-1 h-2 rounded bg-muted"><div className="h-2 rounded bg-primary" style={{ width: `${(Number(v) / Math.max(1, num(x.stories), num(x.posts))) * 100}%` }} /></div>
+                </div>
+              ))}
+            </div>
+          )}
+          {cities.length > 0 && (
+            <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <div className="mb-2 text-sm font-semibold">Principais cidades</div>
+              {cities.slice(0, 10).map((c) => (
+                <div key={c.name} className="mb-1.5 text-xs">{c.name} <b className="float-right">{c.pct}%</b>
+                  <div className="mt-1 h-1.5 rounded bg-muted"><div className="h-1.5 rounded bg-accent" style={{ width: `${Math.min(100, num(c.pct))}%` }} /></div>
+                </div>
+              ))}
+            </div>
+          )}
+          {ages.length > 0 && (
+            <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <div className="mb-2 text-sm font-semibold">Faixa etária e gênero</div>
+              <div className="mb-2 flex gap-3 text-[11px] text-muted-foreground"><span className="text-primary">■ Mulheres</span><span className="text-accent">■ Homens</span></div>
+              <div className="flex h-32 items-end gap-2">
+                {ages.map((a) => { const mx = Math.max(1, ...ages.flatMap((z) => [num(z.f), num(z.m)])); return (
+                  <div key={a.range} className="flex h-full flex-1 flex-col justify-end">
+                    <div className="flex h-full items-end justify-center gap-0.5">
+                      <div className="w-1/2 rounded-t bg-primary" style={{ height: `${(num(a.f) / mx) * 100}%`, minHeight: 1 }} title={`${a.f}%`} />
+                      <div className="w-1/2 rounded-t bg-accent" style={{ height: `${(num(a.m) / mx) * 100}%`, minHeight: 1 }} title={`${a.m}%`} />
+                    </div>
+                    <span className="mt-1 text-center text-[10px] text-muted-foreground">{a.range}</span>
+                  </div>
+                ); })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       {r.notes && <p className="mt-4 whitespace-pre-line text-sm text-muted-foreground">{r.notes}</p>}
+    </div>
+  );
+}
+
+function ClientSummary({ reports }: { reports: Report[] }) {
+  const last = reports[0]; const prev = reports[1];
+  if (!last) return null;
+  const items = [["alcanceIg", "Alcance Instagram"], ["visualizacoes", "Visualizações"], ["seguidores", "Novos seguidores"], ["interacoes", "Interações"]] as const;
+  return (
+    <div className="glass rounded-xl p-6">
+      <div className="mb-1 text-sm text-muted-foreground">Último relatório</div>
+      <h2 className="mb-4 text-xl font-semibold">{last.title}</h2>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {items.map(([k, label]) => {
+          const v = num(last.metrics[k]); const p = prev ? num(prev.metrics[k]) : 0;
+          const diff = p ? Math.round(((v - p) / p) * 100) : null;
+          return (
+            <div key={k} className="rounded-xl border border-border bg-gradient-to-br from-primary/10 to-transparent p-4">
+              <div className="text-xs text-muted-foreground">{label}</div>
+              <div className="font-display text-3xl font-bold">{v.toLocaleString("pt-BR")}</div>
+              {diff !== null && <div className={`text-xs font-semibold ${diff < 0 ? "text-destructive" : "text-success"}`}>{diff < 0 ? "↓" : "↑"} {Math.abs(diff)}% vs. relatório anterior</div>}
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">{reports.length} relatório(s) disponível(is). Use "Visualizar relatório" para imprimir ou salvar em PDF.</p>
     </div>
   );
 }
@@ -169,7 +241,7 @@ function ClientView() {
     },
   });
   if (data.length === 0) return <div className="glass rounded-xl p-10 text-center text-muted-foreground">Nenhum relatório liberado para você ainda.</div>;
-  return <div className="space-y-4">{data.map((r) => <ReportCard key={r.id} r={r} />)}</div>;
+  return <div className="space-y-4"><ClientSummary reports={data} />{data.map((r) => <ReportCard key={r.id} r={r} />)}</div>;
 }
 
 function AdmView() {
@@ -213,6 +285,8 @@ function AdmView() {
   }
   const [metrics, setMetrics] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState("");
+  const [extra, setExtra] = useState<ReportExtra>(emptyExtra);
+  const setX = (p: Partial<ReportExtra>) => setExtra((e) => ({ ...e, ...p }));
   const [total, setTotal] = useState("");
   const [saving, setSaving] = useState(false);
   const nameOf = (id: string) => { const c = clients.find((x) => x.id === id); return c ? c.full_name || c.email || "" : ""; };
@@ -222,11 +296,12 @@ function AdmView() {
     if (networks.length === 0) return toast.error("Escolha pelo menos uma rede social");
     setSaving(true);
     const clean = Object.fromEntries(Object.entries(metrics).filter(([, v]) => v !== "").map(([k, v]) => [k, Number(v.replace(",", "."))]));
-    const { error } = await supabase.from("reports").insert({ client_id: clientId, title, period: period || null, network: networks.join(", "), metrics: clean, notes: notes || null, released: release });
+    const x: ReportExtra = { ...extra, cities: extra.cities?.filter((c) => c.name.trim()), countries: extra.countries?.filter((c) => c.name.trim()), ages: extra.ages?.filter((a) => a.f || a.m) };
+    const { error } = await supabase.from("reports").insert({ client_id: clientId, title, period: period || null, network: networks.join(", "), metrics: { ...clean, _x: x } as never, notes: notes || null, released: release });
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success(release ? "Relatório liberado para o cliente" : "Relatório salvo como rascunho");
-    setTitle(""); setPeriod(""); setMetrics({}); setNotes(""); setTotal(""); setNetworks(["Instagram"]);
+    setTitle(""); setPeriod(""); setMetrics({}); setNotes(""); setTotal(""); setExtra(emptyExtra()); setNetworks(["Instagram"]);
     qc.invalidateQueries({ queryKey: ["reports"] });
   }
 
@@ -297,13 +372,15 @@ function AdmView() {
               {g.keys.map((k) => { const m = mByKey[k]; return (
                 <div key={k} className="space-y-1">
                   <Label className="text-xs">{m.label}</Label>
-                  <Input inputMode="numeric" value={metrics[k] ?? ""} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); const t = Number(total); setMetrics(t && raw !== "" ? redistribute(t, k, Number(raw), metrics) : { ...metrics, [k]: raw }); }} />
+                  <div className="flex gap-1"><Input className="flex-1" inputMode="numeric" value={metrics[k] ?? ""} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); const t = Number(total); setMetrics(t && raw !== "" ? redistribute(t, k, Number(raw), metrics) : { ...metrics, [k]: raw }); }} />
+                    <Input className="w-16 px-2 text-xs" placeholder="↑ %" title="Variação em % (ex: 100 ou -5)" value={extra.growth?.[k] ?? ""} onChange={(e) => setX({ growth: { ...extra.growth, [k]: e.target.value.replace(/[^\d,.-]/g, "") } })} /></div>
                 </div>
               ); })}
             </div>
           </div>
         ))}
         {Object.keys(metrics).length > 0 && <GroupCharts metrics={metrics} />}
+        <ExtraFields extra={extra} setX={setX} />
         <div className="space-y-1.5"><Label>Observações</Label><Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Destaques, conclusões e próximos passos" /></div>
         <div className="flex gap-2">
           <Button variant="outline" disabled={saving} onClick={() => save(false)}>Salvar rascunho</Button>
@@ -327,6 +404,55 @@ function AdmView() {
           />
         ))}
       </div>
+    </div>
+  );
+}
+
+function PctList({ label, rows, onChange, placeholder }: { label: string; rows: PctRow[]; onChange: (r: PctRow[]) => void; placeholder: string }) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">{label}</Label>
+      {rows.map((c, i) => (
+        <div key={i} className="flex gap-1">
+          <Input className="flex-1" value={c.name} placeholder={placeholder} onChange={(e) => onChange(rows.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} />
+          <Input className="w-20" value={c.pct} placeholder="%" onChange={(e) => onChange(rows.map((x, j) => j === i ? { ...x, pct: e.target.value.replace(/[^\d,.]/g, "") } : x))} />
+          <Button type="button" size="icon" variant="ghost" onClick={() => onChange(rows.filter((_, j) => j !== i))}><X className="h-4 w-4" /></Button>
+        </div>
+      ))}
+      <Button type="button" size="sm" variant="secondary" onClick={() => onChange([...rows, { name: "", pct: "" }])}><Plus className="h-3 w-3" /> Adicionar</Button>
+    </div>
+  );
+}
+
+function ExtraFields({ extra, setX }: { extra: ReportExtra; setX: (p: Partial<ReportExtra>) => void }) {
+  return (
+    <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-3">
+      <div className="text-xs font-semibold text-muted-foreground">5. Conteúdo publicado</div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1"><Label className="text-xs">Stories</Label><Input inputMode="numeric" value={extra.stories ?? ""} onChange={(e) => setX({ stories: e.target.value.replace(/\D/g, "") })} /></div>
+        <div className="space-y-1"><Label className="text-xs">Posts</Label><Input inputMode="numeric" value={extra.posts ?? ""} onChange={(e) => setX({ posts: e.target.value.replace(/\D/g, "") })} /></div>
+      </div>
+      <div className="space-y-1"><Label className="text-xs">Comparação (selo verde)</Label><Input value={extra.contentCompare ?? ""} placeholder="+100,0% x 24 de nov a 21 de fev" onChange={(e) => setX({ contentCompare: e.target.value })} /></div>
+      <div className="space-y-1">
+        <Label className="text-xs">Comparação com outras empresas (percentis)</Label>
+        <div className="grid grid-cols-3 gap-2">
+          {(["p25", "p50", "p75"] as const).map((k) => <Input key={k} inputMode="numeric" placeholder={`${k.slice(1)}° percentil`} value={extra[k] ?? ""} onChange={(e) => setX({ [k]: e.target.value.replace(/\D/g, "") })} />)}
+        </div>
+      </div>
+      <div className="text-xs font-semibold text-muted-foreground">6. Público</div>
+      <PctList label="Principais cidades" placeholder="Cáceres, MT" rows={extra.cities ?? []} onChange={(cities) => setX({ cities })} />
+      <PctList label="Principais países" placeholder="Brasil" rows={extra.countries ?? []} onChange={(countries) => setX({ countries })} />
+      <div className="space-y-1.5">
+        <Label className="text-xs">Faixa etária e gênero (%)</Label>
+        <div className="grid grid-cols-[60px_1fr_1fr] gap-1 text-[11px] text-muted-foreground"><span>Idade</span><span>Mulheres</span><span>Homens</span></div>
+        {(extra.ages ?? []).map((a, i) => (
+          <div key={a.range} className="grid grid-cols-[60px_1fr_1fr] items-center gap-1">
+            <span className="text-xs">{a.range}</span>
+            {(["f", "m"] as const).map((g) => <Input key={g} className="h-8" value={a[g]} onChange={(e) => setX({ ages: (extra.ages ?? []).map((z, j) => j === i ? { ...z, [g]: e.target.value.replace(/[^\d,.]/g, "") } : z) })} />)}
+          </div>
+        ))}
+      </div>
+      <div className="space-y-1"><Label className="text-xs">Gerado por (usuário)</Label><Input value={extra.generatedBy ?? ""} placeholder="JEAN CARLO" onChange={(e) => setX({ generatedBy: e.target.value })} /></div>
     </div>
   );
 }
