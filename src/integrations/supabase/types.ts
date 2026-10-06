@@ -220,6 +220,29 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_users: {
+        Args: never
+        Returns: {
+          agency_name: string
+          approved: boolean
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          role: string
+        }[]
+      }
+      my_access: {
+        Args: never
+        Returns: {
+          approved: boolean
+          role: string
+        }[]
+      }
+      set_user_access: {
+        Args: { _approved: boolean; _role: string; _user: string }
+        Returns: undefined
+      }
       submit_decision: {
         Args: {
           _approved: boolean
