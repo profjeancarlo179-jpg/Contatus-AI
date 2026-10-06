@@ -430,6 +430,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_tab_access: {
+        Row: {
+          tabs: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          tabs?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          tabs?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -503,6 +521,10 @@ export type Database = {
       }
       set_user_access: {
         Args: { _approved: boolean; _role: string; _user: string }
+        Returns: undefined
+      }
+      set_user_tabs: {
+        Args: { _tabs: string[]; _user: string }
         Returns: undefined
       }
       submit_decision: {
