@@ -12,6 +12,8 @@ import { InstagramPreview } from "@/components/InstagramPreview";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ApprovalPanel } from "@/components/ApprovalPanel";
+import { isStaff, useAccess } from "@/lib/access";
 
 export const Route = createFileRoute("/_authenticated/arquivos")({
   head: () => ({
@@ -36,6 +38,53 @@ const FILTERS: { id: string; label: string; fn: (c: Content) => boolean }[] = [
 ];
 
 function Arquivos() {
+  const { data: access, isLoading } = useAccess();
+  if (isLoading) return null;
+  if (!isStaff(access?.role)) return <ClientPending />;
+  return <StaffArquivos />;
+}
+
+function ClientPending() {
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["my-pending"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("my_pending_contents");
+      if (error) throw error;
+      return (data ?? []) as { share_token: string; title: string; format: string; sent_at: string | null; expires_at: string | null }[];
+    },
+  });
+  const [open, setOpen] = useState<string | null>(null);
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Arte pendente de aprovação</h1>
+        <p className="text-muted-foreground">Veja como cada arte vai ficar no Instagram e aprove ou peça ajustes.</p>
+      </div>
+      {isLoading ? null : data.length === 0 ? (
+        <div className="glass rounded-xl p-10 text-center text-muted-foreground">Nenhuma arte aguardando sua aprovação.</div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {data.map((c) => (
+            <button key={c.share_token} onClick={() => setOpen(c.share_token)} className="glass rounded-xl p-5 text-left transition hover:border-primary">
+              <div className="font-semibold">{c.title}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{FORMAT_LABEL[c.format] ?? c.format}</div>
+              <div className="mt-3 flex items-center gap-1 text-sm text-warning"><Clock className="h-4 w-4" /> {timeLeft(c.expires_at)} para responder</div>
+              <div className="mt-3 text-sm text-primary">Ver e aprovar →</div>
+            </button>
+          ))}
+        </div>
+      )}
+      <Dialog open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
+        <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto">
+          <DialogHeader><DialogTitle>Aprovação de arte</DialogTitle></DialogHeader>
+          {open && <ApprovalPanel token={open} embedded />}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function StaffArquivos() {
   const qc = useQueryClient();
   const { data = [] } = useQuery({ queryKey: ["contents"], queryFn: fetchContents });
   const [filter, setFilter] = useState("all");

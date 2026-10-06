@@ -519,6 +519,17 @@ export type Database = {
           role: string
         }[]
       }
+      my_pending_contents: {
+        Args: never
+        Returns: {
+          client_name: string
+          expires_at: string
+          format: string
+          sent_at: string
+          share_token: string
+          title: string
+        }[]
+      }
       set_user_access: {
         Args: { _approved: boolean; _role: string; _user: string }
         Returns: undefined
