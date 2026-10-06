@@ -43,5 +43,6 @@ Retorne nota, resumo, pontos fortes, pontos fracos, sugestão de nova bio, 4-6 p
       },
     },
   });
+  console.log("DBG", await result.finishReason, (await result.text).slice(0,300));
   return (await result.output) as AuditResult;
 }
