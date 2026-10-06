@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Copy, Link2, Plus, Send, Timer } from "lucide-react";
+import { Copy, Link2, Mail, Plus, Send, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchContents, FORMAT_LABEL, timeLeft, type Content } from "@/lib/content";
@@ -93,15 +93,27 @@ function SendCard({ content }: { content: Content }) {
   }, []);
   const link = typeof window !== "undefined" ? `${window.location.origin}/aprovar/${content.share_token}` : "";
 
+  async function sendEmail() {
+    const to = email.trim();
+    if (!to) return toast.error("Preencha o e-mail do cliente para enviar");
+    if (to !== (content.client_email ?? "")) {
+      await supabase.from("contents").update({ client_email: to }).eq("id", content.id);
+      qc.invalidateQueries({ queryKey: ["contents"] });
+    }
+    const subject = `Aprovação de arte: ${content.title}`;
+    const body = `Olá${name ? `, ${name}` : ""}!\n\nSua arte "${content.title}" está pronta para aprovação. Veja como ela ficará no Instagram e aprove ou peça ajustes pelo link abaixo:\n\n${link}\n\nVocê tem até 3 dias para responder; sem resposta, a arte será aprovada automaticamente.`;
+    window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+
   async function send() {
-    if (!name.trim() || !email.trim()) return toast.error("Preencha nome e e-mail do cliente");
+    if (!name.trim()) return toast.error("Preencha o nome do cliente");
     if (content.image_urls.length === 0) return toast.error("Envie a arte antes de gerar o link");
     const now = new Date();
     const { error } = await supabase
       .from("contents")
       .update({
         client_name: name,
-        client_email: email,
+        client_email: email.trim() || null,
         status: "pending",
         sent_at: now.toISOString(),
         expires_at: new Date(now.getTime() + 3 * 86400000).toISOString(),
@@ -126,7 +138,7 @@ function SendCard({ content }: { content: Content }) {
       </div>
       <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
         <div className="space-y-1.5"><Label>Nome do cliente</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
-        <div className="space-y-1.5"><Label>E-mail do cliente</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+        <div className="space-y-1.5"><Label>E-mail do cliente <span className="text-muted-foreground">(opcional)</span></Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
         <Button variant="neon" onClick={send}><Send /> {content.status === "pending" ? "Reenviar" : "Gerar link"}</Button>
       </div>
       {content.status !== "draft" && (
@@ -136,6 +148,9 @@ function SendCard({ content }: { content: Content }) {
             <span className="truncate text-sm">{link}</span>
             <Button size="sm" variant="secondary" className="ml-auto" onClick={() => { navigator.clipboard.writeText(link); toast.success("Link copiado"); }}>
               <Copy /> Copiar
+            </Button>
+            <Button size="sm" variant="secondary" onClick={() => sendEmail()}>
+              <Mail /> Enviar por e-mail
             </Button>
           </div>
           {content.status === "pending" && (
