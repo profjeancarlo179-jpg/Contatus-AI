@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ServicesCatalog } from "@/components/ServicesCatalog";
 import { InvoiceCard, type Invoice } from "@/components/InvoiceCard";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
@@ -37,8 +38,9 @@ function Financeiro() {
         <p className="text-muted-foreground">Gere faturas para os clientes e libere quando estiverem prontas.</p>
       </div>
       <Tabs defaultValue="gerar">
-        <TabsList><TabsTrigger value="gerar">Gerar fatura</TabsTrigger></TabsList>
+        <TabsList><TabsTrigger value="gerar">Gerar fatura</TabsTrigger><TabsTrigger value="servicos">Serviços</TabsTrigger></TabsList>
         <TabsContent value="gerar" className="mt-6"><GerarFatura /></TabsContent>
+        <TabsContent value="servicos" className="mt-6"><ServicesCatalog /></TabsContent>
       </Tabs>
     </div>
   );
