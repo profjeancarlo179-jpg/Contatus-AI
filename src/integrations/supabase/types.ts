@@ -395,8 +395,10 @@ export type Database = {
           notes: string | null
           paid_at: string | null
           released: boolean
+          services_done: Json
           status: string
           updated_at: string
+          work_summary: string | null
         }
         Insert: {
           amount?: number
@@ -409,8 +411,10 @@ export type Database = {
           notes?: string | null
           paid_at?: string | null
           released?: boolean
+          services_done?: Json
           status?: string
           updated_at?: string
+          work_summary?: string | null
         }
         Update: {
           amount?: number
@@ -423,8 +427,10 @@ export type Database = {
           notes?: string | null
           paid_at?: string | null
           released?: boolean
+          services_done?: Json
           status?: string
           updated_at?: string
+          work_summary?: string | null
         }
         Relationships: []
       }
