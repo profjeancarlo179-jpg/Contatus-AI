@@ -2,7 +2,7 @@ import { useSubTabs } from "@/lib/access";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { CheckCircle2, Copy, ImageIcon, Link2, Mail, Pencil, Plus, Send, Timer, XCircle } from "lucide-react";
+import { CheckCircle2, Copy, ImageIcon, Link2, Mail, Pencil, Plus, Send, Timer, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchContents, FORMAT_LABEL, isVideo, timeLeft, useMediaUrls, type Content } from "@/lib/content";
@@ -207,7 +207,17 @@ function ReprovadoTab({ data, onOpen }: { data: Content[]; onOpen: (id: string) 
 }
 
 function ReprovadoCard({ c, onOpen }: { c: Content; onOpen: (id: string) => void }) {
+  const qc = useQueryClient();
   const [thumb] = useMediaUrls(c.image_urls.slice(0, 1));
+  const [confirming, setConfirming] = useState(false);
+
+  async function remove() {
+    const { error } = await supabase.from("contents").delete().eq("id", c.id);
+    if (error) return toast.error("Não foi possível excluir: " + error.message);
+    toast.success("Arte reprovada excluída");
+    qc.invalidateQueries({ queryKey: ["contents"] });
+  }
+
   return (
     <div className="glass overflow-hidden rounded-xl">
       <div className="aspect-square bg-muted/40">
@@ -236,9 +246,23 @@ function ReprovadoCard({ c, onOpen }: { c: Content; onOpen: (id: string) => void
           </div>
         )}
         {c.feedback && <p className="text-xs text-muted-foreground">“{c.feedback}”</p>}
-        <Button size="sm" variant="secondary" className="mt-2 w-full" onClick={() => onOpen(c.id)}>
-          <Pencil /> Abrir no editor
-        </Button>
+        <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
+          <Button size="sm" variant="secondary" onClick={() => onOpen(c.id)}>
+            <Pencil /> Abrir no editor
+          </Button>
+          {confirming ? (
+            <div className="flex gap-1">
+              <Button size="sm" variant="destructive" onClick={remove}>
+                <Trash2 /> Confirmar
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setConfirming(false)}>Cancelar</Button>
+            </div>
+          ) : (
+            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" title="Excluir arte reprovada" onClick={() => setConfirming(true)}>
+              <Trash2 /> Excluir
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
