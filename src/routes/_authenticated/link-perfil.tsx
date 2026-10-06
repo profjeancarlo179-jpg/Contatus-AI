@@ -99,8 +99,8 @@ function RedirectPreview({ pages }: { pages: Bio[] }) {
         {pages.map(p => <option key={p.id} value={p.id}>{p.name} (/b/{p.slug})</option>)}
       </select>}
       <h2 className="text-sm font-medium text-muted-foreground">Pré-visualização</h2>
-      <div className="min-h-[520px] overflow-hidden rounded-lg border border-border bg-background"><BioPreview bio={page} /></div>
-      {(page as Bio & { paused?: boolean }).paused ? <p className="text-sm text-destructive">Esta página está pausada. Entre em contato com o desenvolvedor para reativar.</p> : !page.published ? <p className="text-sm text-muted-foreground">Esta página ainda é um rascunho e não está publicada.</p> : <div className="space-y-3">
+      {(page as Bio & { paused?: boolean }).paused ? <div className="grid min-h-[520px] place-items-center rounded-lg border border-destructive/50 bg-card p-8 text-center"><div className="space-y-3"><Pause className="mx-auto h-10 w-10 text-destructive" /><p className="text-lg font-semibold">Página pausada</p><p className="text-sm text-muted-foreground">Esta página está pausada. Entre em contato com o desenvolvedor para reativar.</p></div></div> : <div className="min-h-[520px] overflow-hidden rounded-lg border border-border bg-background"><BioPreview bio={page} /></div>}
+      {(page as Bio & { paused?: boolean }).paused ? null : !page.published ? <p className="text-sm text-muted-foreground">Esta página ainda é um rascunho e não está publicada.</p> : <div className="space-y-3">
         <p className="break-all text-sm text-success">{bioPublicUrl(page.slug)}</p>
         <div className="flex gap-2">
           <Button variant="outline" onClick={async () => { try { await navigator.clipboard.writeText(bioPublicUrl(page.slug)); toast.success("Link copiado"); } catch { toast.error("Não foi possível copiar"); } }}><Copy /> Copiar link</Button>
