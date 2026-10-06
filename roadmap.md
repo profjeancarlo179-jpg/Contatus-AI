@@ -16,3 +16,5 @@
 - [x] Aba Relatórios: sub-aba Adm (cria relatório com título e métricas, libera para cliente) e sub-aba Cliente (vê liberados)
 - [x] Aba Criação: sub-abas Imagem e Vídeo (IA, integração depois) e Edição de vídeo (cortar, 9:16/1:1, texto, música)
 - [x] Aba Configurações (integrações de IA/API — conectar depois)
+- [ ] Aba Clientes: cadastro (logo, artes padrão, perfil, responsável, redes sociais, anotações)
+- [ ] Menu em duas linhas
