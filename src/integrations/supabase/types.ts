@@ -663,6 +663,7 @@ export type Database = {
           role: string
         }[]
       }
+      media_path_shared: { Args: { _name: string }; Returns: boolean }
       my_access: {
         Args: never
         Returns: {
