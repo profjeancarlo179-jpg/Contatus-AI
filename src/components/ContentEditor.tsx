@@ -92,7 +92,27 @@ export function ContentEditor({
       <div className="space-y-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5"><Label>Título interno</Label><Input value={d.title} onChange={(e) => set("title", e.target.value)} placeholder="Ex: Lançamento coleção verão" /></div>
-          <div className="space-y-1.5"><Label>Cliente</Label><Input value={d.client_name ?? ""} onChange={(e) => set("client_name", e.target.value)} placeholder="Nome do cliente" /></div>
+          <div className="space-y-1.5">
+            <Label>Cliente</Label>
+            <Select
+              value={selClient?.id ?? ""}
+              onValueChange={(id) => {
+                const c = clients.find((x) => x.id === id);
+                set("client_name", c ? c.name : "");
+              }}
+            >
+              <SelectTrigger className="w-full"><SelectValue placeholder="Selecionar cliente cadastrado" /></SelectTrigger>
+              <SelectContent>
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input value={d.client_name ?? ""} onChange={(e) => set("client_name", e.target.value)} placeholder="Ou digite o nome do cliente" />
+            {igHandle && (
+              <p className="flex items-center gap-1 text-xs text-primary"><Instagram className="h-3.5 w-3.5" /> Instagram do cliente: @{igHandle}</p>
+            )}
+          </div>
         </div>
         <div className="space-y-1.5">
           <Label>Formato</Label>
