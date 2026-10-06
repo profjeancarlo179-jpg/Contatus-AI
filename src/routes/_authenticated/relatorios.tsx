@@ -399,6 +399,7 @@ function AdmView() {
 
 function DashboardView({ archived = false }: { archived?: boolean }) {
   const qc = useQueryClient();
+  const [openId, setOpenId] = useState<string | null>(null);
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: async () => ((await supabase.rpc("list_clients")).data ?? []) as Client[],
