@@ -16,6 +16,7 @@ import { ServicesCatalog } from "@/components/ServicesCatalog";
 import { InvoiceCard, type Invoice } from "@/components/InvoiceCard";
 import { ContractsTab } from "@/components/ContractsTab";
 import { InvoicePreviewButton } from "@/components/InvoicePreview";
+import { Search } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({
@@ -41,8 +42,9 @@ function Financeiro() {
         <h1 className="text-3xl font-bold">Financeiro</h1>
         <p className="text-muted-foreground">Gere faturas para os clientes e libere quando estiverem prontas.</p>
       </div>
-      <Tabs defaultValue={sub.first("gerar")} key={String(sub.ready)}>
-        <TabsList>{sub.can("gerar") && <TabsTrigger value="gerar">Gerar fatura</TabsTrigger>}{sub.can("baixa") && <TabsTrigger value="baixa">Baixa de fatura</TabsTrigger>}{sub.can("servicos") && <TabsTrigger value="servicos">Serviços</TabsTrigger>}{sub.can("contrato") && <TabsTrigger value="contrato">Contrato</TabsTrigger>}</TabsList>
+      <Tabs defaultValue={sub.first("central")} key={String(sub.ready)}>
+        <TabsList>{sub.can("central") && <TabsTrigger value="central">Central de faturas</TabsTrigger>}{sub.can("gerar") && <TabsTrigger value="gerar">Gerar fatura</TabsTrigger>}{sub.can("baixa") && <TabsTrigger value="baixa">Baixa de fatura</TabsTrigger>}{sub.can("servicos") && <TabsTrigger value="servicos">Serviços</TabsTrigger>}{sub.can("contrato") && <TabsTrigger value="contrato">Contrato</TabsTrigger>}</TabsList>
+        <TabsContent value="central" className="mt-6"><CentralFaturas /></TabsContent>
         <TabsContent value="gerar" className="mt-6"><GerarFatura /></TabsContent>
         <TabsContent value="baixa" className="mt-6"><BaixaFatura /></TabsContent>
         <TabsContent value="servicos" className="mt-6"><ServicesCatalog /></TabsContent>
@@ -65,6 +67,127 @@ function useRegClients() {
 }
 const regUser = (r: Reg) => r.user_ids?.[0] ?? r.user_id ?? null;
 const regOfUser = (regs: Reg[], uid: string) => regs.find((r) => r.user_id === uid || r.user_ids?.includes(uid));
+
+function CentralFaturas() {
+  const qc = useQueryClient();
+  const { data: regs = [] } = useRegClients();
+  const { data: clients = [] } = useQuery({
+    queryKey: ["list_clients"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("list_clients");
+      if (error) throw error;
+      return (data ?? []) as Client[];
+    },
+  });
+  const { data: invoices = [], isLoading } = useQuery({
+    queryKey: ["invoices", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("invoices").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Invoice[];
+    },
+  });
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("todas");
+  const [view, setView] = useState("todas");
+
+  const nameOf = (id: string) => {
+    const r = regOfUser(regs, id);
+    if (r) return r.company_name || r.name;
+    const c = clients.find((x) => x.id === id);
+    return c?.full_name || c?.email || "Cliente";
+  };
+  const docOf = (id: string) => {
+    const r = regOfUser(regs, id);
+    return r?.company_cnpj || r?.resp_document || undefined;
+  };
+
+  const filtered = invoices.filter((i) => {
+    if (status !== "todas" && i.status !== status) return false;
+    if (view === "liberadas" && !i.released) return false;
+    if (view === "rascunho" && i.released) return false;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      const hay = `${i.description} ${nameOf(i.client_id)} ${i.due_date ?? ""} ${i.notes ?? ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  const sum = (list: Invoice[]) => list.reduce((acc, i) => acc + Number(i.amount || 0), 0);
+  const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const open = invoices.filter((i) => i.status === "pendente");
+  const paid = invoices.filter((i) => i.status === "paga");
+
+  async function toggle(i: Invoice) {
+    const { error } = await supabase.from("invoices").update({ released: !i.released }).eq("id", i.id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["invoices"] });
+  }
+  async function remove(i: Invoice) {
+    if (!confirm("Excluir esta fatura?")) return;
+    const { error } = await supabase.from("invoices").delete().eq("id", i.id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["invoices"] });
+  }
+
+  const totalEl = (label: string, value: string, count?: number) => (
+    <div className="glass rounded-xl p-4">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="font-display text-xl font-bold">{value}</p>
+      {count !== undefined && <p className="text-xs text-muted-foreground">{count} fatura{count === 1 ? "" : "s"}</p>}
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {totalEl("Total gerado", fmt(sum(invoices)), invoices.length)}
+        {totalEl("Em aberto", fmt(sum(open)), open.length)}
+        {totalEl("Recebido", fmt(sum(paid)), paid.length)}
+        {totalEl("Liberadas ao cliente", fmt(sum(invoices.filter((i) => i.released))), invoices.filter((i) => i.released).length)}
+      </div>
+
+      <div className="glass flex flex-wrap items-center gap-2 rounded-xl p-3">
+        <div className="relative min-w-[220px] flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input className="pl-9" placeholder="Buscar por descrição, cliente, vencimento…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todas">Todos os status</SelectItem>
+            <SelectItem value="pendente">Pendente</SelectItem>
+            <SelectItem value="paga">Paga</SelectItem>
+            <SelectItem value="cancelada">Cancelada</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={view} onValueChange={setView}>
+          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todas">Todas</SelectItem>
+            <SelectItem value="liberadas">Liberadas</SelectItem>
+            <SelectItem value="rascunho">Rascunho</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {isLoading && <Loader2 className="animate-spin" />}
+      {!isLoading && filtered.length === 0 && <div className="glass rounded-xl p-8 text-center text-muted-foreground">{invoices.length === 0 ? "Nenhuma fatura gerada ainda." : "Nenhuma fatura encontrada com os filtros atuais."}</div>}
+
+      <div className="space-y-3">
+        {filtered.map((i) => (
+          <InvoiceCard key={i.id} i={i} clientName={nameOf(i.client_id)} actions={
+            <>
+              <InvoicePreviewButton i={i} clientName={nameOf(i.client_id)} clientDoc={docOf(i.client_id)} />
+              <Button size="sm" variant="outline" onClick={() => toggle(i)}>{i.released ? <><EyeOff /> Esconder</> : <><Eye /> Liberar</>}</Button>
+              <Button size="sm" variant="ghost" onClick={() => remove(i)}><Trash2 /></Button>
+            </>
+          } />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function GerarFatura() {
   const qc = useQueryClient();
