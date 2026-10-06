@@ -150,6 +150,7 @@ function Approved({ data }: { data: Content[] }) {
 function ApprovedCard({ c }: { c: Content }) {
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
   async function repost() {
     setBusy(true);
     const { error } = await supabase.from("contents").insert({
@@ -159,20 +160,21 @@ function ApprovedCard({ c }: { c: Content }) {
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Pedido criado: a arte foi copiada para os rascunhos em Pré-visualizar & Aprovação");
+    toast.success("Pedido criado: a arte foi para a aba Postar em Pré-visualizar & Aprovação");
     qc.invalidateQueries({ queryKey: ["contents"] });
+    setOpen(false);
   }
   const [thumb] = useMediaUrls(c.image_urls.slice(0, 1));
   const when = c.decided_at ?? c.updated_at;
   return (
     <div className="glass overflow-hidden rounded-xl">
-      <div className="relative aspect-square w-full bg-muted">
+      <button onClick={() => setOpen(true)} className="relative block aspect-square w-full bg-muted">
         {thumb ? (
-          isVideo(c.image_urls[0]) ? <video src={thumb} className="h-full w-full object-cover" controls muted /> : <img src={thumb} alt={c.title} className="h-full w-full object-cover" />
+          isVideo(c.image_urls[0]) ? <video src={thumb} className="h-full w-full object-cover" muted /> : <img src={thumb} alt={c.title} className="h-full w-full object-cover" />
         ) : (
           <div className="grid h-full place-items-center text-muted-foreground"><ImageIcon className="h-8 w-8" /></div>
         )}
-      </div>
+      </button>
       <div className="p-3 text-sm">
         <div className="truncate font-medium">{c.title}{c.client_name ? ` · ${c.client_name}` : ""}</div>
         <div className="text-xs text-success">
@@ -180,6 +182,22 @@ function ApprovedCard({ c }: { c: Content }) {
         </div>
         <Button size="sm" variant="outline" className="mt-2 w-full" disabled={busy} onClick={repost}><Repeat /> Postar novamente</Button>
       </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
+          <DialogHeader><DialogTitle>{c.title}</DialogTitle></DialogHeader>
+          <p className="text-xs text-muted-foreground">Assim o cliente viu a arte no link de aprovação.</p>
+          <InstagramPreview
+            format={c.format}
+            media={c.image_urls}
+            caption={c.caption}
+            hashtags={c.hashtags}
+            audio={c.audio}
+            location={c.location}
+            handle={(c.client_name || "seu.perfil").toLowerCase().replace(/\s+/g, ".")}
+          />
+          <Button variant="neon" className="w-full" disabled={busy} onClick={repost}><Repeat /> Postar novamente</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
