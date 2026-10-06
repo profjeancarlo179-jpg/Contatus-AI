@@ -444,7 +444,47 @@ function DashboardView({ archived = false }: { archived?: boolean }) {
   }
   const groups = [...byClient.entries()].sort((a, b) => nameOf(a[0]).localeCompare(nameOf(b[0]), "pt-BR"));
 
-  if (reports.length === 0) return <div className="glass rounded-xl p-10 text-center text-muted-foreground">{archived ? "Nenhum relatório liberado ainda." : "Nenhum relatório em rascunho. Gere um na aba Adm."}</div>;
+  const baseReports = allReports.filter((r) => r.released === archived);
+  const hasFilters = q !== "" || clientFilter !== "all" || periodFilter !== "all";
+  const filterBar = (
+    <div className="glass flex flex-wrap items-end gap-3 rounded-xl p-4">
+      <div className="min-w-[220px] flex-1 space-y-1.5">
+        <Label className="text-xs">Buscar</Label>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Título, cliente, rede social, período..." className="pl-9" />
+        </div>
+      </div>
+      <div className="w-56 space-y-1.5">
+        <Label className="text-xs">Cliente</Label>
+        <Select value={clientFilter} onValueChange={setClientFilter}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os clientes</SelectItem>
+            {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="w-48 space-y-1.5">
+        <Label className="text-xs">Período</Label>
+        <Select value={periodFilter} onValueChange={setPeriodFilter}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os períodos</SelectItem>
+            {allPeriods.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      {hasFilters && (
+        <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setClientFilter("all"); setPeriodFilter("all"); }}>
+          <X /> Limpar
+        </Button>
+      )}
+    </div>
+  );
+
+  if (baseReports.length === 0) return <div className="glass rounded-xl p-10 text-center text-muted-foreground">{archived ? "Nenhum relatório liberado ainda." : "Nenhum relatório em rascunho. Gere um na aba Adm."}</div>;
+  if (reports.length === 0) return <div className="space-y-4">{filterBar}<div className="glass rounded-xl p-10 text-center text-muted-foreground">Nenhum relatório encontrado com os filtros atuais.</div></div>;
 
   // Arquivos: primeiro escolhe o relatório liberado; ao clicar, ele abre completo.
   if (archived) {
