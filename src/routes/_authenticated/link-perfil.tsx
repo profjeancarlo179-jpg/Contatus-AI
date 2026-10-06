@@ -110,7 +110,7 @@ function BioEditor({ initial, clients, onSaved, onDeleted }: { initial?: Bio; cl
     if (bio.published && !bio.links.some(l => l.enabled)) return toast.error("Adicione pelo menos um link ativo para publicar");
     setBusy(true);
     try {
-      const payload = { name: bio.name.trim(), description: bio.description, photo: bio.photo, slug: bio.slug, links: bio.links, published: bio.published, appearance: { ...bio.appearance } };
+      const payload = { name: bio.name.trim(), description: bio.description, photo: bio.photo, slug: bio.slug, links: bio.links, published: bio.published, appearance: { ...bio.appearance }, client_id: bio.clientId ?? null };
       const res = initial?.id ? await supabase.from("bio_pages").update(payload).eq("id", initial.id).select("id").single() : await supabase.from("bio_pages").insert(payload).select("id").single();
       if (res.error) throw res.error;
       await onSaved(res.data.id); setDirty(false); toast.success(bio.published ? "Página publicada" : "Rascunho salvo");
@@ -126,6 +126,10 @@ function BioEditor({ initial, clients, onSaved, onDeleted }: { initial?: Bio; cl
           <Button variant="outline" asChild><label className="cursor-pointer"><Upload />{uploading ? "Carregando…" : "Escolher foto"}<input aria-label="Foto do perfil" type="file" accept="image/*" className="hidden" disabled={uploading} onChange={async e => { const file = e.target.files?.[0]; if (!file) return; setUploading(true); try { change({ photo: await bioPhoto(file) }); } catch (err) { toast.error(err instanceof Error ? err.message : "Falha na foto"); } finally { setUploading(false); } }} /></label></Button>
           {bio.photo && <Button variant="ghost" size="icon" aria-label="Remover foto" title="Remover foto" onClick={() => change({ photo: "" })}><Trash2 /></Button>}
         </div>
+        <div className="space-y-2"><Label htmlFor="bio-client">Cliente vinculado</Label><select id="bio-client" className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs" value={bio.clientId ?? ""} onChange={e => { const v = e.target.value || null; change({ clientId: v }); if (!initial && v && !bio.name.trim()) { const c = clients.find(x => x.id === v); if (c) change({ clientId: v, name: c.full_name || c.agency_name || "" }); } }}>
+          <option value="">Nenhum (página sem cliente)</option>
+          {clients.map(c => <option key={c.id} value={c.id}>{c.full_name || c.agency_name || c.id}</option>)}
+        </select></div>
         <div className="space-y-2"><Label htmlFor="bio-name">Nome do perfil</Label><Input id="bio-name" maxLength={100} value={bio.name} onChange={e => change({ name: e.target.value })} /></div>
         <div className="space-y-2"><Label htmlFor="bio-description">Descrição</Label><Textarea id="bio-description" maxLength={500} rows={3} value={bio.description} onChange={e => change({ description: e.target.value })} /></div>
         <div className="space-y-2"><Label htmlFor="bio-slug">Endereço da página</Label><div className="flex min-w-0 items-center gap-2"><span className="shrink-0 text-sm text-muted-foreground">/b/</span><Input id="bio-slug" placeholder="sua-marca" maxLength={40} value={bio.slug} onChange={e => change({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} /></div></div>
