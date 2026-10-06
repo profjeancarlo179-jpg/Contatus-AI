@@ -21,3 +21,4 @@
 - [x] Aba Clientes: cadastro (logo, artes padrão, perfil, responsável, redes sociais, anotações)
 - [x] Menu em duas linhas
 - [x] Aprovação: sub-abas Geral e Arquivos (aguardando, salvos para editar, aprovados com data)
+- [ ] Link do perfil: escolher redes sociais exibidas e adicionar redes personalizadas
