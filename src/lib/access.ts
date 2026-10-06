@@ -61,7 +61,7 @@ export const SUB_TABS: Record<string, { key: string; label: string }[]> = {
   "/arquivos": [{ key: "arquivos", label: "Arquivos" }, { key: "pendentes", label: "Arte pendente de aprovação" }, { key: "aprovadas", label: "Artes aprovadas" }],
   "/criacao": [{ key: "imagem", label: "Imagem" }, { key: "video", label: "Vídeo" }, { key: "edicao", label: "Edição de vídeo" }],
   "/link-perfil": [{ key: "novo", label: "Novo" }, { key: "editar", label: "Editar" }, { key: "arquivo", label: "Arquivo" }, { key: "redirect", label: "Link de redirecionamento" }],
-  "/relatorios": [{ key: "dashboard", label: "Dashboard" }, { key: "cliente", label: "Cliente" }, { key: "adm", label: "Adm" }],
+  "/relatorios": [{ key: "dashboard", label: "Dashboard" }, { key: "arquivos", label: "Arquivos" }, { key: "cliente", label: "Cliente" }, { key: "adm", label: "Adm" }],
   "/financeiro": [{ key: "gerar", label: "Gerar fatura" }, { key: "baixa", label: "Baixa de fatura" }, { key: "servicos", label: "Serviços" }, { key: "contrato", label: "Contrato" }],
 };
 
