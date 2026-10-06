@@ -71,7 +71,7 @@ function ProfileLinks() {
       <BioEditor key={editId} initial={current} onSaved={async id => { await refresh(); setSelected(id); }} onDeleted={async () => { setSelected("new"); await refresh(); }} />
     </>) : tab === "arquivo" ? (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página salva.</p> :
       <div className="space-y-3">{(pages as (Bio & { paused?: boolean })[]).map(p => <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
-        <div><p className="font-semibold">{p.name}</p><p className="text-sm text-muted-foreground">/b/{p.slug} · {p.paused ? <span className="text-destructive">Pausada</span> : p.published ? <span className="text-success">Pública</span> : "Rascunho"}</p></div>
+        <div><p className="font-semibold">{p.name}</p><p className="text-sm text-muted-foreground">/b/{p.slug}{clientLabel(p.clientId) ? ` · ${clientLabel(p.clientId)}` : ""} · {p.paused ? <span className="text-destructive">Pausada</span> : p.published ? <span className="text-success">Pública</span> : "Rascunho"}</p></div>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => { setSelected(p.id!); setTab("editar"); }}>Editar</Button>
           <Button variant={p.paused ? "neon" : "destructive"} onClick={() => togglePause(p)}>{p.paused ? <><Play /> Reativar</> : <><Pause /> Pausar</>}</Button>
@@ -97,7 +97,7 @@ function RedirectPreview({ pages }: { pages: Bio[] }) {
     </div>
   </div>;
 }
-function BioEditor({ initial, onSaved, onDeleted }: { initial?: Bio; onSaved: (id: string) => Promise<void>; onDeleted: () => Promise<void> }) {
+function BioEditor({ initial, clients, onSaved, onDeleted }: { initial?: Bio; clients: { id: string; full_name: string | null; agency_name: string | null }[]; onSaved: (id: string) => Promise<void>; onDeleted: () => Promise<void> }) {
   const [bio, setBio] = useState<Bio>(initial ?? empty());
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
