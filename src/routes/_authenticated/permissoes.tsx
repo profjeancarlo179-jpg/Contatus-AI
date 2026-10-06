@@ -238,35 +238,66 @@ function NewUser({ onDone }: { onDone: () => void }) {
 }
 
 function ProfileList({ users, tabMap }: { users: U[]; tabMap: Record<string, string[]> }) {
+  const qc = useQueryClient();
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {users.map((u) => {
-        const tabs = tabMap[u.id];
-        const pages = tabs ? tabs.filter((x) => !x.includes("#")) : null;
-        return (
-          <div key={u.id} className="glass space-y-3 rounded-xl p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/15 text-lg font-bold text-primary">
-                {(u.full_name || u.email || "?").trim().charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <div className="truncate font-medium">{u.full_name || "Sem nome"}</div>
-                <div className="truncate text-xs text-muted-foreground">{u.email}</div>
-              </div>
-            </div>
-            <dl className="space-y-1.5 text-sm">
-              <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Perfil</dt><dd className="font-medium">{ROLES[u.role]}</dd></div>
-              <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Empresa</dt><dd className="truncate">{u.agency_name || "—"}</dd></div>
-              <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Cadastro</dt><dd>{new Date(u.created_at).toLocaleDateString("pt-BR")}</dd></div>
-              <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Situação</dt>
-                <dd className={u.paused ? "text-warning" : u.approved ? "text-success" : "text-destructive"}>{u.paused ? "Pausado" : u.approved ? "Ativo" : "Bloqueado"}</dd></div>
-              <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Abas</dt>
-                <dd className="text-right">{u.role === "master" ? "Todas (Adm Master)" : pages ? `${pages.length} aba(s)` : "Todas do perfil"}</dd></div>
-            </dl>
-          </div>
-        );
-      })}
+      {users.map((u) => (
+        <ProfileCard key={u.id} u={u} pages={tabMap[u.id]?.filter((x) => !x.includes("#")) ?? null}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["users"] })} />
+      ))}
       {users.length === 0 && <p className="text-sm text-muted-foreground">Nenhum usuário.</p>}
+    </div>
+  );
+}
+
+function ProfileCard({ u, pages, onSaved }: { u: U; pages: string[] | null; onSaved: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(u.full_name ?? "");
+  const [agency, setAgency] = useState(u.agency_name ?? "");
+  const [busy, setBusy] = useState(false);
+  async function save() {
+    setBusy(true);
+    const { error } = await (supabase as any).from("profiles")
+      .update({ full_name: name.trim() || null, agency_name: agency.trim() || null })
+      .eq("id", u.id);
+    setBusy(false);
+    if (error) return toast.error("Não foi possível salvar.");
+    toast.success("Perfil atualizado");
+    setEditing(false);
+    onSaved();
+  }
+  return (
+    <div className="glass space-y-3 rounded-xl p-5">
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/15 text-lg font-bold text-primary">
+          {(u.full_name || u.email || "?").trim().charAt(0).toUpperCase()}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-medium">{u.full_name || "Sem nome"}</div>
+          <div className="truncate text-xs text-muted-foreground">{u.email}</div>
+        </div>
+        {!editing && <Button variant="outline" size="sm" onClick={() => { setName(u.full_name ?? ""); setAgency(u.agency_name ?? ""); setEditing(true); }}><Pencil /> Editar</Button>}
+      </div>
+      {editing ? (
+        <div className="space-y-3">
+          <div><Label>Nome</Label><Input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} /></div>
+          <div><Label>Empresa / agência</Label><Input value={agency} onChange={(e) => setAgency(e.target.value)} maxLength={120} /></div>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>Cancelar</Button>
+            <Button variant="neon" size="sm" disabled={busy} onClick={save}>{busy ? "Salvando..." : "Salvar"}</Button>
+          </div>
+        </div>
+      ) : (
+        <dl className="space-y-1.5 text-sm">
+          <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Perfil</dt><dd className="font-medium">{ROLES[u.role]}</dd></div>
+          <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Empresa</dt><dd className="truncate">{u.agency_name || "—"}</dd></div>
+          <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Cadastro</dt><dd>{new Date(u.created_at).toLocaleDateString("pt-BR")}</dd></div>
+          <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Situação</dt>
+            <dd className={u.paused ? "text-warning" : u.approved ? "text-success" : "text-destructive"}>{u.paused ? "Pausado" : u.approved ? "Ativo" : "Bloqueado"}</dd></div>
+          <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Abas</dt>
+            <dd className="text-right">{u.role === "master" ? "Todas (Adm Master)" : pages ? `${pages.length} aba(s)` : "Todas do perfil"}</dd></div>
+        </dl>
+      )}
     </div>
   );
 }
