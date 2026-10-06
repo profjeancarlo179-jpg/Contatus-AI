@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { InstagramPreview } from "@/components/InstagramPreview";
-import { FORMAT_LABEL, fitImageToRatio, uploadMedia, useMediaUrls, type Content } from "@/lib/content";
+import { FORMAT_LABEL, uploadMedia, useMediaUrls, type Content } from "@/lib/content";
 
 type ClientOption = { id: string; name: string; socials: Record<string, string> | null };
 
@@ -58,7 +58,7 @@ export function ContentEditor({
     setUploading(true);
     try {
       // Ajusta a imagem automaticamente ao formato do mockup (1:1, 4:5 ou 9:16).
-      const adapted = await Promise.all(Array.from(files).map((f) => fitImageToRatio(f, d.format)));
+      const adapted = Array.from(files);
       const paths = await Promise.all(adapted.map(uploadMedia));
       set("image_urls", multi ? [...d.image_urls, ...paths].slice(0, 10) : [paths[0]]);
     } catch (e) {
