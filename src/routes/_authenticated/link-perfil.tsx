@@ -34,7 +34,7 @@ function ProfileLinks() {
     if (!session.user) throw new Error("Entre novamente");
     const { data, error } = await supabase.from("bio_pages").select("*").eq("user_id", session.user.id).order("created_at", { ascending: false });
     if (error) throw error;
-    return (data ?? []) as unknown as Bio[];
+    return (data ?? []).map(d => ({ ...d, clientId: (d as { client_id?: string | null }).client_id ?? null })) as unknown as Bio[];
   } });
   const [tab, setTab] = useState<"novo" | "editar" | "arquivo" | "redirect">("novo");
   const { data: clients = [] } = useQuery({ queryKey: ["bio-clients"], queryFn: async () => {
