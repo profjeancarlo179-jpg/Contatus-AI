@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { CheckCircle2, Clock, ImageIcon, PencilLine, Repeat, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useSubTabs } from "@/lib/access";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FORMAT_LABEL, isVideo, timeLeft, useMediaUrls, type Content } from "@/lib/content";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -18,12 +19,13 @@ export function ApprovalFiles({ data, onOpen }: { data: Content[]; onOpen: (id: 
     .filter((c) => c.status === "approved")
     .sort((a, b) => (b.decided_at ?? "").localeCompare(a.decided_at ?? ""));
 
+  const sub = useSubTabs("/aprovacao");
   return (
     <Tabs defaultValue="geral">
       <TabsList>
         <TabsTrigger value="geral">Geral</TabsTrigger>
-        <TabsTrigger value="aprovados">Aprovados</TabsTrigger>
-        <TabsTrigger value="reprovados">Reprovados</TabsTrigger>
+        {sub.can("arq-aprovados") && <TabsTrigger value="aprovados">Aprovados</TabsTrigger>}
+        {sub.can("arq-reprovados") && <TabsTrigger value="reprovados">Reprovados</TabsTrigger>}
       </TabsList>
       <TabsContent value="aprovados" className="mt-6"><Decided data={data} status="approved" /></TabsContent>
       <TabsContent value="reprovados" className="mt-6"><Decided data={data} status="rejected" /></TabsContent>

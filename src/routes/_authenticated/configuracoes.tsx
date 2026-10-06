@@ -3,7 +3,7 @@ import { Clapperboard, ImageIcon, Instagram, KeyRound, Sparkles } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail } from "lucide-react";
-import { isStaff, useAccess } from "@/lib/access";
+import { isStaff, useAccess, useSubTabs } from "@/lib/access";
 import { PaymentSettingsForm } from "@/components/PaymentSettingsForm";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
@@ -27,6 +27,7 @@ const INTEGRATIONS = [
 
 function Configuracoes() {
   const { data: access } = useAccess();
+  const sub = useSubTabs("/configuracoes");
   if (!isStaff(access?.role)) return <div className="glass rounded-xl p-8 text-center text-muted-foreground">Apenas Adm pode acessar.</div>;
   return (
     <div className="space-y-6">
@@ -34,11 +35,11 @@ function Configuracoes() {
         <h1 className="text-3xl font-bold">Configurações</h1>
         <p className="text-muted-foreground">Integrações de IA e chaves de acesso. As chaves ficam guardadas com segurança, nunca no navegador.</p>
       </div>
-      <Tabs defaultValue="ia">
+      <Tabs defaultValue={sub.first("ia")}>
       <TabsList>
-        <TabsTrigger value="ia">Configurações de IA</TabsTrigger>
-        {access?.role === "master" && <TabsTrigger value="pagamento">Configurações de pagamento</TabsTrigger>}
-        <TabsTrigger value="email">Configurações de e-mail</TabsTrigger>
+        {sub.can("ia") && <TabsTrigger value="ia">Configurações de IA</TabsTrigger>}
+        {access?.role === "master" && sub.can("pagamento") && <TabsTrigger value="pagamento">Configurações de pagamento</TabsTrigger>}
+        {sub.can("email") && <TabsTrigger value="email">Configurações de e-mail</TabsTrigger>}
       </TabsList>
       <TabsContent value="ia" className="mt-4">
       <div className="grid gap-4 md:grid-cols-2">
