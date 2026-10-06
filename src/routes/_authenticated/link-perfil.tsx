@@ -86,7 +86,7 @@ function BioEditor({ initial, onSaved, onDeleted }: { initial?: Bio; onSaved: (i
           </div>
           <Input aria-label={`Título do link ${i + 1}`} placeholder="Título do botão" maxLength={100} value={link.label} onChange={e => change({ links: bio.links.map(l => l.id === link.id ? { ...l, label: e.target.value } : l) })} />
           <Input aria-label={`Endereço do link ${i + 1}`} placeholder="https://..." type="url" value={link.url} onChange={e => change({ links: bio.links.map(l => l.id === link.id ? { ...l, url: e.target.value } : l) })} />
-          <BioIconPicker index={i + 1} value={link.icon} onChange={icon => change({ links: bio.links.map(l => l.id === link.id ? { ...l, icon } : l) })} />
+          <BioIconPicker index={i + 1} value={link.icon} image={link.iconImage} onChange={(icon, iconImage) => change({ links: bio.links.map(l => l.id === link.id ? { ...l, icon, iconImage } : l) })} />
         </div>)}
       </section>
       <section className="space-y-4 border-t border-border pt-6"><div className="flex items-center gap-3"><Switch id="bio-publish" checked={bio.published} onCheckedChange={published => change({ published })} /><Label htmlFor="bio-publish">Página pública</Label></div>
