@@ -418,6 +418,7 @@ export type Database = {
           logo: string | null
           phone: string
           pix_code: string
+          pix_qr: string | null
           updated_at: string
           website: string
           whatsapp: string
@@ -432,6 +433,7 @@ export type Database = {
           logo?: string | null
           phone?: string
           pix_code?: string
+          pix_qr?: string | null
           updated_at?: string
           website?: string
           whatsapp?: string
@@ -446,6 +448,7 @@ export type Database = {
           logo?: string | null
           phone?: string
           pix_code?: string
+          pix_qr?: string | null
           updated_at?: string
           website?: string
           whatsapp?: string
