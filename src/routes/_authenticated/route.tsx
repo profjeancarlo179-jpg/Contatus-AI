@@ -1,9 +1,10 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { LayoutDashboard, PenSquare, Smartphone, FolderOpen, LineChart, LogOut, Sparkles, User, ShieldCheck, Clock } from "lucide-react";
+import { LayoutDashboard, PenSquare, Smartphone, FolderOpen, LineChart, LogOut, Sparkles, User, ShieldCheck, Clock, BarChart3, Clapperboard, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ROLE_LABEL, useAccess, isStaff } from "@/lib/access";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -24,19 +25,9 @@ const TABS = [
   { to: "/aprovacao", label: "Pré-visualizar & Aprovação", icon: Smartphone },
   { to: "/arquivos", label: "Arquivos", icon: FolderOpen },
   { to: "/analise", label: "Análise & Conexão", icon: LineChart },
+  { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
+  { to: "/criacao", label: "Criação Vídeo & Imagem", icon: Clapperboard },
 ] as const;
-
-const ROLE_LABEL: Record<string, string> = { client: "Cliente", admin: "Adm", master: "Adm Master" };
-
-function useAccess() {
-  return useQuery({
-    queryKey: ["access"],
-    queryFn: async () => {
-      const { data } = await supabase.rpc("my_access");
-      return (data?.[0] ?? { role: "client", approved: false }) as { role: string; approved: boolean };
-    },
-  });
-}
 
 function AppLayout() {
   const navigate = useNavigate();
@@ -78,6 +69,15 @@ function AppLayout() {
                 {t.label}
               </Link>
             ))}
+            {isStaff(access?.role) && (
+              <Link
+                to="/configuracoes"
+                className="flex items-center gap-2 border-b-2 border-transparent px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                activeProps={{ className: "!border-primary !text-foreground" }}
+              >
+                <Settings className="h-4 w-4" /> Configurações
+              </Link>
+            )}
             {access?.role === "master" && (
               <Link
                 to="/permissoes"
