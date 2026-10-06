@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ServicesCatalog } from "@/components/ServicesCatalog";
 import { InvoiceCard, type Invoice } from "@/components/InvoiceCard";
+import { ContractsTab } from "@/components/ContractsTab";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({
@@ -40,10 +41,11 @@ function Financeiro() {
         <p className="text-muted-foreground">Gere faturas para os clientes e libere quando estiverem prontas.</p>
       </div>
       <Tabs defaultValue={sub.first("gerar")} key={String(sub.ready)}>
-        <TabsList>{sub.can("gerar") && <TabsTrigger value="gerar">Gerar fatura</TabsTrigger>}{sub.can("baixa") && <TabsTrigger value="baixa">Baixa de fatura</TabsTrigger>}{sub.can("servicos") && <TabsTrigger value="servicos">Serviços</TabsTrigger>}</TabsList>
+        <TabsList>{sub.can("gerar") && <TabsTrigger value="gerar">Gerar fatura</TabsTrigger>}{sub.can("baixa") && <TabsTrigger value="baixa">Baixa de fatura</TabsTrigger>}{sub.can("servicos") && <TabsTrigger value="servicos">Serviços</TabsTrigger>}{sub.can("contrato") && <TabsTrigger value="contrato">Contrato</TabsTrigger>}</TabsList>
         <TabsContent value="gerar" className="mt-6"><GerarFatura /></TabsContent>
         <TabsContent value="baixa" className="mt-6"><BaixaFatura /></TabsContent>
         <TabsContent value="servicos" className="mt-6"><ServicesCatalog /></TabsContent>
+        <TabsContent value="contrato" className="mt-6"><ContractsTab /></TabsContent>
       </Tabs>
     </div>
   );

@@ -298,6 +298,60 @@ export type Database = {
         }
         Relationships: []
       }
+      contracts: {
+        Row: {
+          author_id: string
+          body: string
+          client_email: string | null
+          client_id: string | null
+          client_name: string
+          created_at: string
+          id: string
+          share_token: string
+          signature: string | null
+          signed_at: string | null
+          signed_document: string | null
+          signed_name: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string
+          body?: string
+          client_email?: string | null
+          client_id?: string | null
+          client_name: string
+          created_at?: string
+          id?: string
+          share_token?: string
+          signature?: string | null
+          signed_at?: string | null
+          signed_document?: string | null
+          signed_name?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          client_email?: string | null
+          client_id?: string | null
+          client_name?: string
+          created_at?: string
+          id?: string
+          share_token?: string
+          signature?: string | null
+          signed_at?: string | null
+          signed_document?: string | null
+          signed_name?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number
@@ -471,6 +525,20 @@ export type Database = {
           photo: string
         }[]
       }
+      get_contract: {
+        Args: { _token: string }
+        Returns: {
+          body: string
+          client_name: string
+          created_at: string
+          signature: string
+          signed_at: string
+          signed_document: string
+          signed_name: string
+          status: string
+          title: string
+        }[]
+      }
       get_shared_content: {
         Args: { _token: string }
         Returns: {
@@ -548,6 +616,15 @@ export type Database = {
       }
       set_user_tabs: {
         Args: { _tabs: string[]; _user: string }
+        Returns: undefined
+      }
+      sign_contract: {
+        Args: {
+          _document: string
+          _name: string
+          _signature: string
+          _token: string
+        }
         Returns: undefined
       }
       submit_decision: {
