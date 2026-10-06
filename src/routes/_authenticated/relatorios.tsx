@@ -304,20 +304,21 @@ function AdmView() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="glass h-fit space-y-4 rounded-xl p-6">
+    <div className="space-y-4">
+      <div className="glass space-y-4 rounded-xl p-5">
         <h2 className="font-semibold">Novo relatório</h2>
-        <div className="space-y-1.5">
-          <Label>Cliente</Label>
-          <Select value={clientId} onValueChange={setClientId}>
-            <SelectTrigger><SelectValue placeholder={clients.length ? "Selecione" : "Nenhum cliente liberado"} /></SelectTrigger>
-            <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>)}</SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5"><Label>Título</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Relatório mensal — Setembro" /></div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="space-y-1.5">
+            <Label>Cliente</Label>
+            <Select value={clientId} onValueChange={setClientId}>
+              <SelectTrigger><SelectValue placeholder={clients.length ? "Selecione" : "Nenhum cliente liberado"} /></SelectTrigger>
+              <SelectContent>{clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5"><Label>Título</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Relatório mensal — Setembro" /></div>
           <div className="space-y-1.5"><Label>Período</Label><Input value={period} onChange={(e) => setPeriod(e.target.value)} placeholder="01/09 a 30/09" /></div>
         </div>
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="space-y-1.5">
           <Label>Redes sociais (marque uma ou mais)</Label>
           <div className="flex flex-wrap gap-2">
@@ -351,11 +352,20 @@ function AdmView() {
             <Button type="button" variant="secondary" onClick={() => { const t = Number(total); if (!t) return toast.error("Insira um total válido"); setMetrics(distribute(t)); setX({ ages: genAges(60) }); toast.success("Métricas e faixa etária geradas (60% homens / 40% mulheres — ajuste a divisão na seção 6. Público)"); }}>Distribuir tudo</Button>
           </div>
           <p className="text-xs text-muted-foreground">Ao alterar um campo, o restante do total é redistribuído entre os outros.</p>
+          </div>
         </div>
+      </div>
+
+      <div className="glass space-y-4 rounded-xl p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-semibold">Métricas da campanha</h2>
+          <span className="text-xs text-muted-foreground">Campo pequeno ao lado de cada métrica = variação em % (ex: 100 ou -5)</span>
+        </div>
+        <div className="grid gap-x-6 gap-y-5 md:grid-cols-2 2xl:grid-cols-4">
         {GROUPS.map((g) => (
           <div key={g.title} className="space-y-2">
             <div className="text-xs font-semibold text-muted-foreground">{g.title}</div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
               {g.keys.map((k) => { const m = mByKey[k]; return (
                 <div key={k} className="space-y-1">
                   <Label className="text-xs">{m.label}</Label>
@@ -366,10 +376,17 @@ function AdmView() {
             </div>
           </div>
         ))}
+        </div>
         {Object.keys(metrics).length > 0 && <GroupCharts metrics={metrics} />}
+      </div>
+
+      <div className="glass rounded-xl p-5">
         <ExtraFields extra={extra} setX={setX} />
-        <div className="space-y-1.5"><Label>Observações</Label><Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Destaques, conclusões e próximos passos" /></div>
-        <div className="flex gap-2">
+      </div>
+
+      <div className="glass space-y-3 rounded-xl p-5">
+        <div className="space-y-1.5"><Label>Observações</Label><Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Destaques, conclusões e próximos passos" /></div>
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" disabled={saving} onClick={() => save(false)}>Salvar rascunho</Button>
           <Button variant="neon" disabled={saving} onClick={() => save(true)}>{saving && <Loader2 className="animate-spin" />} Liberar para cliente</Button>
         </div>
@@ -471,7 +488,8 @@ function countriesFromCities(cities: { name: string; pct: string }[]) {
 
 function ExtraFields({ extra, setX }: { extra: ReportExtra; setX: (p: Partial<ReportExtra>) => void }) {
   return (
-    <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-3">
+    <div className="grid gap-6 rounded-lg border border-border bg-muted/20 p-4 lg:grid-cols-2">
+      <div className="space-y-4">
       <div className="text-xs font-semibold text-muted-foreground">5. Conteúdo publicado</div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1"><Label className="text-xs">Stories</Label><Input inputMode="numeric" value={extra.stories ?? ""} onChange={(e) => setX({ stories: e.target.value.replace(/\D/g, "") })} /></div>
@@ -484,12 +502,15 @@ function ExtraFields({ extra, setX }: { extra: ReportExtra; setX: (p: Partial<Re
           {(["p25", "p50", "p75"] as const).map((k) => <Input key={k} inputMode="numeric" placeholder={`${k.slice(1)}° percentil`} value={extra[k] ?? ""} onChange={(e) => setX({ [k]: e.target.value.replace(/\D/g, "") })} />)}
         </div>
       </div>
+      </div>
+      <div className="space-y-4">
       <div className="text-xs font-semibold text-muted-foreground">6. Público</div>
       <CitySearch rows={extra.cities ?? []} onChange={(cities) => setX({ cities, countries: countriesFromCities(cities) })} />
       <PctList label="Cidades escolhidas (ajuste o %)" placeholder="Cáceres, MT" rows={extra.cities ?? []} onChange={(cities) => setX({ cities, countries: countriesFromCities(cities) })} />
       <PctList label="Principais países" placeholder="Brasil" rows={extra.countries ?? []} onChange={(countries) => setX({ countries })} />
       <GenderAges extra={extra} setX={setX} />
       <div className="space-y-1"><Label className="text-xs">Gerado por (usuário)</Label><Input value={extra.generatedBy ?? ""} placeholder="JEAN CARLO" onChange={(e) => setX({ generatedBy: e.target.value })} /></div>
+      </div>
     </div>
   );
 }
