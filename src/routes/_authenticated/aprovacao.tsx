@@ -15,6 +15,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApprovalFiles } from "@/components/ApprovalFiles";
 
 export const Route = createFileRoute("/_authenticated/aprovacao")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    id: typeof search.id === "string" && search.id ? search.id : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Pré-visualizar & Aprovação — Contatus AI" },
@@ -29,7 +32,8 @@ export const Route = createFileRoute("/_authenticated/aprovacao")({
 function Aprovacao() {
   const qc = useQueryClient();
   const { data = [] } = useQuery({ queryKey: ["contents"], queryFn: fetchContents });
-  const [selectedId, setSelectedId] = useState<string | "new">("new");
+  const { id: initialId } = Route.useSearch();
+  const [selectedId, setSelectedId] = useState<string | "new">(initialId ?? "new");
   const [tab, setTab] = useState("geral");
   const selected = data.find((c) => c.id === selectedId);
   const open = (id: string) => { setSelectedId(id); setTab("geral"); window.scrollTo({ top: 0 }); };
