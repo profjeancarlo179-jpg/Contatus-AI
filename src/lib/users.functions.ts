@@ -28,5 +28,5 @@ export const createUser = createServerFn({ method: "POST" })
     if (error || !created.user) throw new Error(error?.message?.includes("already") ? "Este e-mail já está cadastrado." : "Não foi possível criar o usuário.");
     const { error: e2 } = await context.supabase.rpc("set_user_access", { _user: created.user.id, _approved: true, _role: data.role });
     if (e2) throw new Error("Usuário criado, mas não foi possível definir o perfil.");
-    return { ok: true };
+    return { ok: true, id: created.user.id };
   });
