@@ -44,8 +44,10 @@ function Aprovacao() {
         <TabsList>
           <TabsTrigger value="geral">Geral</TabsTrigger>
           <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
+          <TabsTrigger value="postar">Postar</TabsTrigger>
         </TabsList>
         <TabsContent value="arquivos" className="mt-6"><ApprovalFiles data={data} onOpen={open} /></TabsContent>
+        <TabsContent value="postar" className="mt-6"><PostarTab data={data} /></TabsContent>
         <TabsContent value="geral" className="mt-6">
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
         <aside className="glass h-fit max-h-[75vh] overflow-y-auto rounded-xl p-2">
