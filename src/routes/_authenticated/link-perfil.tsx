@@ -58,7 +58,7 @@ function ProfileLinks() {
     <h1 className="text-3xl font-bold">Link do perfil</h1>
     <div className="flex flex-wrap gap-2 border-b border-border pb-2">{tabs.filter(([k]) => sub.can(k)).map(([k, l]) => <Button key={k} variant={tab === k ? "secondary" : "ghost"} onClick={() => { setTab(k); if (k === "editar") setSelected("new"); }}>{l}</Button>)}</div>
     {isLoading ? <Loader2 className="animate-spin" /> : error ? <p className="text-destructive">Não foi possível carregar suas páginas.</p> : tab === "novo" ? (
-      <BioEditor key="new" onSaved={async id => { await refresh(); setSelected(id); setTab("editar"); }} onDeleted={async () => { await refresh(); }} />
+      <BioEditor key="new" clients={clients} onSaved={async id => { await refresh(); setSelected(id); setTab("editar"); }} onDeleted={async () => { await refresh(); }} />
     ) : tab === "editar" ? (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página pronta ainda. Crie uma na aba Novo.</p> : !current ? <>
       <p className="text-muted-foreground">Escolha o perfil que deseja editar:</p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{pages.map(p => <div key={p.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
@@ -68,7 +68,7 @@ function ProfileLinks() {
       </div>)}</div>
     </> : <>
       <Button variant="ghost" onClick={() => setSelected("new")}><ArrowLeft /> Escolher outro perfil</Button>
-      <BioEditor key={editId} initial={current} onSaved={async id => { await refresh(); setSelected(id); }} onDeleted={async () => { setSelected("new"); await refresh(); }} />
+      <BioEditor key={editId} initial={current} clients={clients} onSaved={async id => { await refresh(); setSelected(id); }} onDeleted={async () => { setSelected("new"); await refresh(); }} />
     </>) : tab === "arquivo" ? (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página salva.</p> :
       <div className="space-y-3">{(pages as (Bio & { paused?: boolean })[]).map(p => <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
         <div><p className="font-semibold">{p.name}</p><p className="text-sm text-muted-foreground">/b/{p.slug}{clientLabel(p.clientId) ? ` · ${clientLabel(p.clientId)}` : ""} · {p.paused ? <span className="text-destructive">Pausada</span> : p.published ? <span className="text-success">Pública</span> : "Rascunho"}</p></div>
