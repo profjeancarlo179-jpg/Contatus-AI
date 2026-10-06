@@ -34,3 +34,15 @@ export async function bioPhoto(file: File): Promise<string> {
   bitmap.close();
   return canvas.toDataURL("image/jpeg", 0.85);
 }
+export async function bioIconImage(file: File): Promise<string> {
+  if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) throw new Error("Escolha uma imagem de até 5 MB");
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement("canvas");
+  canvas.width = 96; canvas.height = 96;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Não foi possível carregar o ícone");
+  const side = Math.min(bitmap.width, bitmap.height);
+  ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, 96, 96);
+  bitmap.close();
+  return canvas.toDataURL("image/png");
+}
