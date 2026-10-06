@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { CheckCircle2, Copy, ImageIcon, Link2, Mail, Plus, Send, Timer } from "lucide-react";
+import { CheckCircle2, Copy, ImageIcon, Link2, Mail, Pencil, Plus, Send, Timer, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchContents, FORMAT_LABEL, isVideo, timeLeft, useMediaUrls, type Content } from "@/lib/content";
