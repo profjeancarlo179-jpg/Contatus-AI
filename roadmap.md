@@ -1,4 +1,5 @@
 # Contatus AI — Roadmap
+- [ ] Aba Link do perfil: edição de foto, descrição e links; página pública sem login
 - [x] Banco de dados (perfis, conteúdos, auditorias, arquivos de mídia)
 - [x] Login e-mail/senha
 - [x] Menu principal em abas (pedido do usuário)
