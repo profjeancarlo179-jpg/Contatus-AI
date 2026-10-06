@@ -450,16 +450,43 @@ function ExtraFields({ extra, setX }: { extra: ReportExtra; setX: (p: Partial<Re
 }
 
 const AGE_W = [0.06, 0.28, 0.38, 0.2, 0.06, 0.02];
-function genAges() {
+function genAges(malePct = 60) {
+  const mTotal = Math.max(0, Math.min(100, malePct));
   const r = (total: number) => {
+    if (total <= 0) return AGE_W.map(() => 0);
     const ws = AGE_W.map((w) => w * (1 + (Math.random() * 0.3 - 0.15)));
     const sum = ws.reduce((a, b) => a + b, 0);
     const out = ws.map((w) => Math.round((total * w) / sum));
     out[2] += total - out.reduce((a, b) => a + b, 0);
     return out;
   };
-  const m = r(60), f = r(40);
+  const m = r(mTotal), f = r(100 - mTotal);
   return ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"].map((range, i) => ({ range, f: String(f[i]), m: String(m[i]) }));
+}
+
+function GenderAges({ extra, setX }: { extra: ReportExtra; setX: (p: Partial<ReportExtra>) => void }) {
+  const [malePct, setMalePct] = useState("60");
+  const generate = () => {
+    const m = Math.max(0, Math.min(100, Number(malePct) || 0));
+    setX({ ages: genAges(m) });
+  };
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">Faixa etária e gênero (%) — escolha a divisão e gere</Label>
+      <div className="flex items-end gap-2">
+        <div className="flex-1 space-y-1"><Label className="text-[11px]">Homens</Label><Input inputMode="numeric" value={malePct} onChange={(e) => setMalePct(e.target.value.replace(/\D/g, ""))} placeholder="60" /></div>
+        <div className="flex-1 space-y-1"><Label className="text-[11px]">Mulheres</Label><Input readOnly tabIndex={-1} className="text-muted-foreground" value={Math.max(0, 100 - (Number(malePct) || 0)) + "%"} /></div>
+        <Button type="button" size="sm" variant="secondary" onClick={generate}>Gerar</Button>
+      </div>
+      <div className="grid grid-cols-[60px_1fr_1fr] gap-1 text-[11px] text-muted-foreground"><span>Idade</span><span>Mulheres</span><span>Homens</span></div>
+      {(extra.ages ?? []).map((a, i) => (
+        <div key={a.range} className="grid grid-cols-[60px_1fr_1fr] items-center gap-1">
+          <span className="text-xs">{a.range}</span>
+          {(["f", "m"] as const).map((g) => <Input key={g} className="h-8" value={a[g]} onChange={(e) => setX({ ages: (extra.ages ?? []).map((z, j) => j === i ? { ...z, [g]: e.target.value.replace(/[^\d,.]/g, "") } : z) })} />)}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 type City = { n: string; uf: string };
