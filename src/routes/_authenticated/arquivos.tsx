@@ -67,7 +67,7 @@ function ClientPending() {
           {data.map((c) => (
             <button key={c.share_token} onClick={() => setOpen(c.share_token)} className="glass rounded-xl p-5 text-left transition hover:border-primary">
               <div className="font-semibold">{c.title}</div>
-              <div className="mt-1 text-xs text-muted-foreground">{FORMAT_LABEL[c.format as keyof typeof FORMAT_LABEL] ?? c.format}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{FORMAT_LABEL[c.format] ?? c.format}</div>
               <div className="mt-3 flex items-center gap-1 text-sm text-warning"><Clock className="h-4 w-4" /> {timeLeft(c.expires_at)} para responder</div>
               <div className="mt-3 text-sm text-primary">Ver e aprovar →</div>
             </button>
