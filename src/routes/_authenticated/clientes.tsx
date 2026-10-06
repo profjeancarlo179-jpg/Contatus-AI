@@ -160,8 +160,8 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
   }
 
   async function createLogin() {
-    const email = (loginEmail || d.resp_email || "").trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(email)) return toast.error("Informe um e-mail válido (ex: nome@empresa.com)");
+    const email = (loginEmail || d.resp_email || "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+    if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) return toast.error("E-mail inválido: use apenas letras sem acento, números e ponto (ex: anderson.goncalves@hotmail.com)");
     if (loginPass.length < 6) return toast.error("A senha precisa ter no mínimo 6 caracteres");
     setCreating(true);
     try {
