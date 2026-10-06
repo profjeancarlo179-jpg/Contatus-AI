@@ -47,6 +47,7 @@ function Fatura() {
       return (data ?? []) as Invoice[];
     },
   });
+  const [search, setSearch] = useState("");
   const [month, setMonth] = useState("todos");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
