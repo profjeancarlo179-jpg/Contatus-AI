@@ -14,13 +14,160 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audits: {
+        Row: {
+          bio: string | null
+          created_at: string
+          followers: number | null
+          handle: string
+          id: string
+          niche: string | null
+          notes: string | null
+          result: Json | null
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          followers?: number | null
+          handle: string
+          id?: string
+          niche?: string | null
+          notes?: string | null
+          result?: Json | null
+          user_id?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          followers?: number | null
+          handle?: string
+          id?: string
+          niche?: string | null
+          notes?: string | null
+          result?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      contents: {
+        Row: {
+          art_approved: boolean | null
+          batch_id: string | null
+          batch_label: string | null
+          caption: string
+          caption_approved: boolean | null
+          client_name: string | null
+          created_at: string
+          day_number: number | null
+          feedback: string | null
+          hashtags: string
+          id: string
+          image_urls: string[]
+          kind: string
+          share_token: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          art_approved?: boolean | null
+          batch_id?: string | null
+          batch_label?: string | null
+          caption?: string
+          caption_approved?: boolean | null
+          client_name?: string | null
+          created_at?: string
+          day_number?: number | null
+          feedback?: string | null
+          hashtags?: string
+          id?: string
+          image_urls?: string[]
+          kind?: string
+          share_token?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          art_approved?: boolean | null
+          batch_id?: string | null
+          batch_label?: string | null
+          caption?: string
+          caption_approved?: boolean | null
+          client_name?: string | null
+          created_at?: string
+          day_number?: number | null
+          feedback?: string | null
+          hashtags?: string
+          id?: string
+          image_urls?: string[]
+          kind?: string
+          share_token?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          agency_name: string | null
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          agency_name?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          agency_name?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_shared_content: {
+        Args: { _token: string }
+        Returns: {
+          agency_name: string
+          art_approved: boolean
+          caption: string
+          caption_approved: boolean
+          client_name: string
+          feedback: string
+          hashtags: string
+          id: string
+          image_urls: string[]
+          kind: string
+          status: string
+          title: string
+        }[]
+      }
+      submit_approval: {
+        Args: {
+          _art: boolean
+          _caption: boolean
+          _feedback: string
+          _token: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
