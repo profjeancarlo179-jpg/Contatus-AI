@@ -3,6 +3,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { LayoutGrid } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { APP_TABS, roleAllows } from "@/lib/access";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/permissoes")({
@@ -31,6 +36,14 @@ function Permissoes() {
       return (data ?? []) as U[];
     },
   });
+  const { data: tabMap = {} } = useQuery({
+    queryKey: ["user-tabs"],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("user_tab_access").select("user_id,tabs");
+      return Object.fromEntries(((data ?? []) as { user_id: string; tabs: string[] }[]).map((r) => [r.user_id, r.tabs])) as Record<string, string[]>;
+    },
+  });
+  const [editing, setEditing] = useState<U | null>(null);
 
   async function setAccess(u: U, approved: boolean, role: string) {
     const { error } = await supabase.rpc("set_user_access", { _user: u.id, _approved: approved, _role: role });
@@ -66,6 +79,9 @@ function Permissoes() {
                   {Object.entries(ROLES).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
                 </SelectContent>
               </Select>
+              <Button variant="outline" size="sm" disabled={u.role === "master"} title={u.role === "master" ? "Adm Master vê tudo" : undefined} onClick={() => setEditing(u)}>
+                <LayoutGrid /> Abas {u.role !== "master" && (tabMap[u.id] ? `(${tabMap[u.id].length})` : "(todas)")}
+              </Button>
               {u.approved ? (
                 <Button variant="outline" size="sm" onClick={() => setAccess(u, false, u.role)}>Bloquear</Button>
               ) : (
@@ -76,6 +92,42 @@ function Permissoes() {
           {data.length === 0 && <li className="p-6 text-sm text-muted-foreground">Nenhum usuário.</li>}
         </ul>
       </div>
+      {editing && <TabsDialog user={editing} current={tabMap[editing.id] ?? null} onClose={() => setEditing(null)} onSaved={() => { qc.invalidateQueries({ queryKey: ["user-tabs"] }); setEditing(null); }} />}
     </div>
+  );
+}
+
+function TabsDialog({ user, current, onClose, onSaved }: { user: U; current: string[] | null; onClose: () => void; onSaved: () => void }) {
+  const available = APP_TABS.filter((t) => roleAllows(user.role, t.only));
+  const [sel, setSel] = useState<string[]>(current ?? available.map((t) => t.to));
+  async function save(tabs: string[] | null) {
+    const { error } = await (supabase as any).rpc("set_user_tabs", { _user: user.id, _tabs: tabs });
+    if (error) return toast.error("Não foi possível salvar.");
+    toast.success("Abas atualizadas");
+    onSaved();
+  }
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Abas de {user.full_name || user.email}</DialogTitle></DialogHeader>
+        <p className="text-sm text-muted-foreground">Marque as abas e menus que esta pessoa pode ver ({ROLES[user.role]}).</p>
+        <div className="flex gap-2 text-xs">
+          <button className="text-primary hover:underline" onClick={() => setSel(available.map((t) => t.to))}>Marcar todas</button>
+          <button className="text-primary hover:underline" onClick={() => setSel([])}>Desmarcar todas</button>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {available.map((t) => (
+            <label key={t.to} className="flex cursor-pointer items-center gap-2 rounded-lg border border-border p-2.5 text-sm hover:bg-muted">
+              <Checkbox checked={sel.includes(t.to)} onCheckedChange={(c) => setSel((s) => (c ? [...s, t.to] : s.filter((x) => x !== t.to)))} />
+              {t.label}
+            </label>
+          ))}
+        </div>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button variant="ghost" onClick={() => save(null)}>Voltar ao padrão</Button>
+          <Button variant="neon" onClick={() => save(sel)}>Salvar</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

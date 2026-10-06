@@ -1,10 +1,10 @@
-import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, redirect, useNavigate, useLocation } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { LayoutDashboard, PenSquare, Smartphone, FolderOpen, LineChart, LogOut, Sparkles, User, ShieldCheck, Clock, BarChart3, Clapperboard, Settings, Users, Link2, Wallet, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ROLE_LABEL, useAccess, isStaff } from "@/lib/access";
+import { ROLE_LABEL, useAccess, canSeeTab } from "@/lib/access";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,9 @@ function AppLayout() {
   const [profileOpen, setProfileOpen] = useState(false);
   const qc = useQueryClient();
   const { data: access, isLoading } = useAccess();
+  const { pathname } = useLocation();
+  const curTab = [...ROW1, ...ROW2].find((t) => pathname === t.to || pathname.startsWith(t.to + "/"));
+  const blocked = !!access && !!curTab && !canSeeTab(access, curTab.to, curTab.only);
 
   async function logout() {
     await qc.cancelQueries();
@@ -69,7 +72,7 @@ function AppLayout() {
           {[ROW1, ROW2].map((row, i) => (
             <div key={i} className="flex flex-wrap gap-1">
               {row
-                .filter((t) => (t.only === "staff" ? isStaff(access?.role) : t.only === "master" ? access?.role === "master" : true))
+                .filter((t) => canSeeTab(access, t.to, t.only))
                 .map((t) => (
                   <Link
                     key={t.to}
@@ -87,7 +90,13 @@ function AppLayout() {
       </header>
       <main className="mx-auto max-w-7xl px-4 py-8">
         {isLoading ? null : access?.approved ? (
-          <Outlet />
+          blocked ? (
+            <div className="glass mx-auto max-w-md rounded-2xl p-8 text-center">
+              <ShieldCheck className="mx-auto h-10 w-10 text-warning" />
+              <h1 className="mt-4 text-2xl font-semibold">Sem acesso</h1>
+              <p className="mt-2 text-sm text-muted-foreground">Você não tem acesso a esta aba. Fale com o Adm Master.</p>
+            </div>
+          ) : <Outlet />
         ) : (
           <div className="glass mx-auto max-w-md rounded-2xl p-8 text-center">
             <Clock className="mx-auto h-10 w-10 text-warning" />
