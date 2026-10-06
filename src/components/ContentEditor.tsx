@@ -138,6 +138,7 @@ export function ContentEditor({
             {uploading ? "Enviando…" : "Clique para enviar imagem ou vídeo"}
             <input type="file" accept="image/*,video/*" multiple={multi} className="hidden" onChange={(e) => onFiles(e.target.files)} />
           </label>
+          <p className="text-xs text-muted-foreground">A imagem é ajustada automaticamente ao formato escolhido ({FORMAT_LABEL[d.format]}) para preencher o mockup do celular.</p>
           {d.image_urls.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {d.image_urls.map((p, k) => (
