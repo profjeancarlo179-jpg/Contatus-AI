@@ -25,20 +25,77 @@ export const Route = createFileRoute("/_authenticated/relatorios")({
   component: Relatorios,
 });
 
-const METRICS: { key: string; label: string; suffix?: string }[] = [
-  { key: "followers", label: "Seguidores" },
-  { key: "new_followers", label: "Novos seguidores" },
-  { key: "reach", label: "Alcance" },
-  { key: "impressions", label: "Impressões" },
-  { key: "engagement", label: "Engajamento", suffix: "%" },
-  { key: "likes", label: "Curtidas" },
-  { key: "comments", label: "Comentários" },
-  { key: "shares", label: "Compartilhamentos" },
-  { key: "saves", label: "Salvamentos" },
-  { key: "profile_visits", label: "Visitas ao perfil" },
-  { key: "link_clicks", label: "Cliques no link" },
-  { key: "posts", label: "Publicações" },
+const METRICS: { key: string; label: string; suffix?: string; color?: string; short?: string; w?: number }[] = [
+  { key: "alcanceFb", label: "Alcance do Facebook", short: "FB Ads", color: "#1877f2", w: 0.10 },
+  { key: "alcanceIg", label: "Alcance do Instagram", short: "IG Ads", color: "#e1306c", w: 0.40 },
+  { key: "maps", label: "Buscas no Google Maps", short: "Google Maps", color: "#ea4335", w: 0.15 },
+  { key: "visualizacoes", label: "Visualizações totais", short: "Totais", color: "#2cb574", w: 0.12 },
+  { key: "visualizadores", label: "Visualizadores únicos", short: "Únicos", color: "#4c5fd7", w: 0.09 },
+  { key: "cliques", label: "Cliques no link", short: "Cliques link", color: "#f4b400", w: 0.03 },
+  { key: "linktree", label: "Visitas ao Linktree", short: "Linktree", color: "#39e587", w: 0.025 },
+  { key: "visitas", label: "Visitas ao perfil", short: "Visitas", color: "#1098ad", w: 0.04 },
+  { key: "seguidores", label: "Novos seguidores", short: "Seguidores", color: "#6f42c1", w: 0.03 },
+  { key: "interacoes", label: "Interações com o conteúdo", short: "Interações", color: "#fd7e14", w: 0.015 },
 ];
+const GROUPS = [
+  { title: "1. Canais de alcance e descoberta", keys: ["alcanceFb", "alcanceIg", "maps"] },
+  { title: "2. Volume de visualizações", keys: ["visualizacoes", "visualizadores"] },
+  { title: "3. Cliques e direcionamento", keys: ["cliques", "linktree"] },
+  { title: "4. Engajamento e crescimento", keys: ["visitas", "seguidores", "interacoes"] },
+];
+const LEGACY: Record<string, string> = { followers: "Seguidores", new_followers: "Novos seguidores", reach: "Alcance", impressions: "Impressões", engagement: "Engajamento", likes: "Curtidas", comments: "Comentários", shares: "Compartilhamentos", saves: "Salvamentos", profile_visits: "Visitas ao perfil", link_clicks: "Cliques no link", posts: "Publicações" };
+const mByKey = Object.fromEntries(METRICS.map((m) => [m.key, m]));
+
+function distribute(total: number): Record<string, string> {
+  const ws = METRICS.map((m) => m.w! * (1 + (Math.random() * 0.4 - 0.2)));
+  const sum = ws.reduce((a, b) => a + b, 0);
+  let rest = total; const out: Record<string, string> = {};
+  METRICS.forEach((m, i) => {
+    let v = i === METRICS.length - 1 ? rest : Math.floor((total * ws[i]) / sum);
+    if (i < METRICS.length - 1 && v === 0 && total > 80) v = 1;
+    if (i < METRICS.length - 1) rest -= v;
+    out[m.key] = String(Math.max(0, v));
+  });
+  return out;
+}
+function redistribute(total: number, key: string, value: number, cur: Record<string, string>): Record<string, string> {
+  const v = Math.min(Math.max(0, value), total);
+  const others = METRICS.filter((m) => m.key !== key);
+  const wsum = others.reduce((a, m) => a + m.w!, 0);
+  let rest = total - v; const out: Record<string, string> = { ...cur, [key]: String(v) };
+  others.forEach((m, i) => {
+    const n = i === others.length - 1 ? rest : Math.floor(((total - v) * m.w!) / wsum);
+    if (i < others.length - 1) rest -= n;
+    out[m.key] = String(Math.max(0, n));
+  });
+  return out;
+}
+
+function GroupCharts({ metrics }: { metrics: Record<string, number | string> }) {
+  const groups = GROUPS.filter((g) => g.keys.some((k) => Number(metrics[k]) > 0));
+  if (!groups.length) return null;
+  return (
+    <div className="mt-5 grid gap-4 md:grid-cols-2">
+      {groups.map((g) => {
+        const max = Math.max(1, ...g.keys.map((k) => Number(metrics[k]) || 0));
+        return (
+          <div key={g.title} className="rounded-lg border border-border bg-muted/30 p-4">
+            <div className="mb-3 text-sm font-semibold">{g.title}</div>
+            <div className="flex h-40 items-end justify-around gap-3">
+              {g.keys.map((k) => { const n = Number(metrics[k]) || 0; const m = mByKey[k]; return (
+                <div key={k} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
+                  <span className="text-xs font-semibold">{n.toLocaleString("pt-BR")}</span>
+                  <div className="w-full max-w-14 rounded-t" style={{ height: `${(n / max) * 100}%`, minHeight: 2, background: m.color }} />
+                  <span className="text-center text-[11px] text-muted-foreground">{m.short}</span>
+                </div>
+              ); })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 type Report = {
   id: string; client_id: string; title: string; period: string | null; network: string;
@@ -88,13 +145,14 @@ function ReportCard({ r, clientName, actions }: { r: Report; clientName?: string
         {actions}
       </div>
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {METRICS.filter((m) => r.metrics[m.key] !== undefined && r.metrics[m.key] !== "").map((m) => (
+        {[...METRICS, ...Object.entries(LEGACY).map(([key, label]) => ({ key, label, suffix: key === "engagement" ? "%" : undefined }))].filter((m) => r.metrics[m.key] !== undefined && r.metrics[m.key] !== "").map((m) => (
           <div key={m.key} className="rounded-lg border border-border bg-muted/30 p-3">
             <div className="text-xs text-muted-foreground">{m.label}</div>
             <div className="mt-1 font-display text-xl font-semibold">{fmt(r.metrics[m.key], m.suffix)}</div>
           </div>
         ))}
       </div>
+      <GroupCharts metrics={r.metrics} />
       {r.notes && <p className="mt-4 whitespace-pre-line text-sm text-muted-foreground">{r.notes}</p>}
     </div>
   );
@@ -130,6 +188,7 @@ function AdmView() {
   const [network, setNetwork] = useState("Instagram");
   const [metrics, setMetrics] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState("");
+  const [total, setTotal] = useState("");
   const [saving, setSaving] = useState(false);
   const nameOf = (id: string) => { const c = clients.find((x) => x.id === id); return c ? c.full_name || c.email || "" : ""; };
 
@@ -141,7 +200,7 @@ function AdmView() {
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success(release ? "Relatório liberado para o cliente" : "Relatório salvo como rascunho");
-    setTitle(""); setPeriod(""); setMetrics({}); setNotes("");
+    setTitle(""); setPeriod(""); setMetrics({}); setNotes(""); setTotal("");
     qc.invalidateQueries({ queryKey: ["reports"] });
   }
 
@@ -178,14 +237,28 @@ function AdmView() {
             </Select>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          {METRICS.map((m) => (
-            <div key={m.key} className="space-y-1">
-              <Label className="text-xs">{m.label}{m.suffix ? ` (${m.suffix})` : ""}</Label>
-              <Input inputMode="decimal" value={metrics[m.key] ?? ""} onChange={(e) => setMetrics({ ...metrics, [m.key]: e.target.value.replace(/[^\d.,]/g, "") })} />
-            </div>
-          ))}
+        <div className="space-y-1.5 rounded-lg border border-border bg-muted/30 p-3">
+          <Label>Número total geral da campanha</Label>
+          <div className="flex gap-2">
+            <Input inputMode="numeric" value={total} onChange={(e) => setTotal(e.target.value.replace(/\D/g, ""))} placeholder="Ex: 25000" />
+            <Button type="button" variant="secondary" onClick={() => { const t = Number(total); if (!t) return toast.error("Insira um total válido"); setMetrics(distribute(t)); }}>Distribuir tudo</Button>
+          </div>
+          <p className="text-xs text-muted-foreground">Ao alterar um campo, o restante do total é redistribuído entre os outros.</p>
         </div>
+        {GROUPS.map((g) => (
+          <div key={g.title} className="space-y-2">
+            <div className="text-xs font-semibold text-muted-foreground">{g.title}</div>
+            <div className="grid grid-cols-2 gap-3">
+              {g.keys.map((k) => { const m = mByKey[k]; return (
+                <div key={k} className="space-y-1">
+                  <Label className="text-xs">{m.label}</Label>
+                  <Input inputMode="numeric" value={metrics[k] ?? ""} onChange={(e) => { const raw = e.target.value.replace(/\D/g, ""); const t = Number(total); setMetrics(t && raw !== "" ? redistribute(t, k, Number(raw), metrics) : { ...metrics, [k]: raw }); }} />
+                </div>
+              ); })}
+            </div>
+          </div>
+        ))}
+        {Object.keys(metrics).length > 0 && <GroupCharts metrics={metrics} />}
         <div className="space-y-1.5"><Label>Observações</Label><Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Destaques, conclusões e próximos passos" /></div>
         <div className="flex gap-2">
           <Button variant="outline" disabled={saving} onClick={() => save(false)}>Salvar rascunho</Button>
