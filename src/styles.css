@@ -130,3 +130,11 @@
 .bio-theme-swatch-1 { background: #e5f4e5; }
 .bio-theme-swatch-2 { background: #fce5ed; }
 .bio-theme-swatch-3 { background: #e8f1ff; }
+
+@media print {
+  body[data-print-invoice] * { visibility: hidden; }
+  body[data-print-invoice] [data-invoice].printing,
+  body[data-print-invoice] [data-invoice].printing * { visibility: visible; }
+  body[data-print-invoice] [data-invoice].printing { position: absolute; inset: 0 auto auto 0; width: 100%; color: #000; background: #fff; }
+  body[data-print-invoice] .no-print { display: none !important; }
+}

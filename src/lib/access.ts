@@ -58,7 +58,7 @@ export const SUB_TABS: Record<string, { key: string; label: string }[]> = {
   "/criacao": [{ key: "imagem", label: "Imagem" }, { key: "video", label: "Vídeo" }, { key: "edicao", label: "Edição de vídeo" }],
   "/link-perfil": [{ key: "novo", label: "Novo" }, { key: "editar", label: "Editar" }, { key: "arquivo", label: "Arquivo" }, { key: "redirect", label: "Link de redirecionamento" }],
   "/relatorios": [{ key: "cliente", label: "Cliente" }, { key: "adm", label: "Adm" }],
-  "/financeiro": [{ key: "gerar", label: "Gerar fatura" }, { key: "servicos", label: "Serviços" }],
+  "/financeiro": [{ key: "gerar", label: "Gerar fatura" }, { key: "baixa", label: "Baixa de fatura" }, { key: "servicos", label: "Serviços" }],
 };
 
 /** If no sub-tab of a page is stored, every sub-tab of that page is allowed. */

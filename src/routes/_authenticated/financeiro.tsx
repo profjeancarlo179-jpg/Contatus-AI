@@ -40,8 +40,9 @@ function Financeiro() {
         <p className="text-muted-foreground">Gere faturas para os clientes e libere quando estiverem prontas.</p>
       </div>
       <Tabs defaultValue={sub.first("gerar")} key={String(sub.ready)}>
-        <TabsList>{sub.can("gerar") && <TabsTrigger value="gerar">Gerar fatura</TabsTrigger>}{sub.can("servicos") && <TabsTrigger value="servicos">Serviços</TabsTrigger>}</TabsList>
+        <TabsList>{sub.can("gerar") && <TabsTrigger value="gerar">Gerar fatura</TabsTrigger>}{sub.can("baixa") && <TabsTrigger value="baixa">Baixa de fatura</TabsTrigger>}{sub.can("servicos") && <TabsTrigger value="servicos">Serviços</TabsTrigger>}</TabsList>
         <TabsContent value="gerar" className="mt-6"><GerarFatura /></TabsContent>
+        <TabsContent value="baixa" className="mt-6"><BaixaFatura /></TabsContent>
         <TabsContent value="servicos" className="mt-6"><ServicesCatalog /></TabsContent>
       </Tabs>
     </div>
@@ -96,7 +97,7 @@ function GerarFatura() {
     qc.invalidateQueries({ queryKey: ["invoices"] });
   }
   async function setStatus(i: Invoice, status: string) {
-    const { error } = await supabase.from("invoices").update({ status }).eq("id", i.id);
+    const { error } = await supabase.from("invoices").update({ status, paid_at: status === "paga" ? new Date().toISOString() : null } as never).eq("id", i.id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["invoices"] });
   }
@@ -150,6 +151,57 @@ function GerarFatura() {
               <Button size="sm" variant="ghost" onClick={() => remove(i)}><Trash2 /></Button>
             </>
           } />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BaixaFatura() {
+  const qc = useQueryClient();
+  const { data: clients = [] } = useQuery({
+    queryKey: ["list_clients"],
+    queryFn: async () => ((await supabase.rpc("list_clients")).data ?? []) as Client[],
+  });
+  const { data: invoices = [], isLoading } = useQuery({
+    queryKey: ["invoices", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("invoices").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Invoice[];
+    },
+  });
+  const [dates, setDates] = useState<Record<string, string>>({});
+  const name = (id: string) => { const c = clients.find((x) => x.id === id); return c?.full_name || c?.email || "Cliente"; };
+  const today = new Date().toISOString().slice(0, 10);
+  async function pay(i: Invoice, undo = false) {
+    const d = dates[i.id] || today;
+    const { error } = await supabase.from("invoices").update({ status: undo ? "pendente" : "paga", paid_at: undo ? null : new Date(d + "T12:00").toISOString() } as never).eq("id", i.id);
+    if (error) return toast.error("Não foi possível atualizar.");
+    toast.success(undo ? "Baixa desfeita" : "Pagamento registrado");
+    qc.invalidateQueries({ queryKey: ["invoices"] });
+  }
+  const open = invoices.filter((i) => i.status === "pendente");
+  const paid = invoices.filter((i) => i.status === "paga");
+  if (isLoading) return <Loader2 className="animate-spin" />;
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <div className="space-y-3">
+        <h2 className="font-semibold">Aguardando pagamento ({open.length})</h2>
+        {open.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma fatura em aberto.</p>}
+        {open.map((i) => (
+          <InvoiceCard key={i.id} i={i} clientName={name(i.client_id)} actions={<>
+            <Label className="text-xs">Data do pagamento</Label>
+            <Input type="date" className="w-40" value={dates[i.id] || today} onChange={(e) => setDates({ ...dates, [i.id]: e.target.value })} />
+            <Button variant="neon" size="sm" onClick={() => pay(i)}>Dar baixa</Button>
+          </>} />
+        ))}
+      </div>
+      <div className="space-y-3">
+        <h2 className="font-semibold">Pagas ({paid.length})</h2>
+        {paid.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma fatura paga ainda.</p>}
+        {paid.map((i) => (
+          <InvoiceCard key={i.id} i={i} clientName={name(i.client_id)} actions={<Button variant="ghost" size="sm" onClick={() => pay(i, true)}>Desfazer baixa</Button>} />
         ))}
       </div>
     </div>
