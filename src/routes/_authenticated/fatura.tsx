@@ -19,7 +19,9 @@ export const Route = createFileRoute("/_authenticated/fatura")({
 
 function printInvoice(id: string) {
   document.body.dataset.printInvoice = id;
-  const done = () => { delete document.body.dataset.printInvoice; window.removeEventListener("afterprint", done); };
+  const el = document.querySelector(`[data-invoice="${id}"]`);
+  el?.classList.add("printing");
+  const done = () => { el?.classList.remove("printing"); delete document.body.dataset.printInvoice; window.removeEventListener("afterprint", done); };
   window.addEventListener("afterprint", done);
   setTimeout(() => window.print(), 50);
 }
