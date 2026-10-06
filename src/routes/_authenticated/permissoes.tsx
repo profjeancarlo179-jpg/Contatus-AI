@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { LayoutGrid, Pencil, UserPlus, PauseCircle } from "lucide-react";
+import { LayoutGrid, Pencil, UserPlus, PauseCircle, IdCard } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useServerFn } from "@tanstack/react-start";
@@ -48,7 +48,7 @@ function Permissoes() {
     },
   });
   const [editing, setEditing] = useState<U | null>(null);
-  const [tab, setTab] = useState<"editar" | "novo" | "pausar">("editar");
+  const [tab, setTab] = useState<"editar" | "novo" | "pausar" | "perfil">("editar");
   const [info, setInfo] = useState<U | null>(null);
   async function setPaused(u: U, paused: boolean) {
     const { error } = await (supabase as any).rpc("set_user_paused", { _user: u.id, _paused: paused });
@@ -75,12 +75,13 @@ function Permissoes() {
         <p className="text-muted-foreground">Aprove cadastros e defina o perfil de cada pessoa. {pending > 0 && <span className="text-warning">{pending} aguardando.</span>}</p>
       </div>
       <div className="flex flex-wrap gap-2">
-        {([["editar", "Editar", Pencil], ["novo", "Novo", UserPlus], ["pausar", "Pausar e bloquear", PauseCircle]] as const).map(([k, l, I]) => (
+        {([["editar", "Editar", Pencil], ["novo", "Novo", UserPlus], ["pausar", "Pausar e bloquear", PauseCircle], ["perfil", "Perfil", IdCard]] as const).map(([k, l, I]) => (
           <Button key={k} variant={tab === k ? "neon" : "outline"} size="sm" onClick={() => setTab(k)}><I /> {l}</Button>
         ))}
       </div>
       {tab === "novo" && <NewUser onDone={() => { qc.invalidateQueries({ queryKey: ["users"] }); setTab("editar"); }} />}
       {tab === "pausar" && <PauseList users={data} onPause={setPaused} onBlock={(u, b) => setAccess(u, !b, u.role)} />}
+      {tab === "perfil" && <ProfileList users={data} tabMap={tabMap} />}
       {tab === "editar" && <div className="glass overflow-hidden rounded-xl">
         <ul className="divide-y divide-border">
           {data.map((u) => (
@@ -229,6 +230,40 @@ function NewUser({ onDone }: { onDone: () => void }) {
       </div>
       <Button variant="neon" type="submit" disabled={busy}>{busy ? "Criando..." : "Criar usuário"}</Button>
     </form>
+  );
+}
+
+function ProfileList({ users, tabMap }: { users: U[]; tabMap: Record<string, string[]> }) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {users.map((u) => {
+        const tabs = tabMap[u.id];
+        const pages = tabs ? tabs.filter((x) => !x.includes("#")) : null;
+        return (
+          <div key={u.id} className="glass space-y-3 rounded-xl p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/15 text-lg font-bold text-primary">
+                {(u.full_name || u.email || "?").trim().charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <div className="truncate font-medium">{u.full_name || "Sem nome"}</div>
+                <div className="truncate text-xs text-muted-foreground">{u.email}</div>
+              </div>
+            </div>
+            <dl className="space-y-1.5 text-sm">
+              <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Perfil</dt><dd className="font-medium">{ROLES[u.role]}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Empresa</dt><dd className="truncate">{u.agency_name || "—"}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Cadastro</dt><dd>{new Date(u.created_at).toLocaleDateString("pt-BR")}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Situação</dt>
+                <dd className={u.paused ? "text-warning" : u.approved ? "text-success" : "text-destructive"}>{u.paused ? "Pausado" : u.approved ? "Ativo" : "Bloqueado"}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Abas</dt>
+                <dd className="text-right">{u.role === "master" ? "Todas (Adm Master)" : pages ? `${pages.length} aba(s)` : "Todas do perfil"}</dd></div>
+            </dl>
+          </div>
+        );
+      })}
+      {users.length === 0 && <p className="text-sm text-muted-foreground">Nenhum usuário.</p>}
+    </div>
   );
 }
 
