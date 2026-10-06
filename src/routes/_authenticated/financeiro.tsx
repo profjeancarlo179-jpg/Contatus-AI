@@ -17,6 +17,8 @@ import { InvoiceCard, type Invoice } from "@/components/InvoiceCard";
 import { ContractsTab } from "@/components/ContractsTab";
 import { InvoicePreviewButton } from "@/components/InvoicePreview";
 import { Search } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({
@@ -364,11 +366,31 @@ function BaixaFatura() {
   const [dates, setDates] = useState<Record<string, string>>({});
   const name = (id: string) => { const c = clients.find((x) => x.id === id); return c?.full_name || c?.email || "Cliente"; };
   const today = new Date().toISOString().slice(0, 10);
-  async function pay(i: Invoice, undo = false) {
-    const d = dates[i.id] || today;
-    const { error } = await supabase.from("invoices").update({ status: undo ? "pendente" : "paga", paid_at: undo ? null : new Date(d + "T12:00").toISOString() } as never).eq("id", i.id);
+  const { data: catalog = [] } = useQuery({
+    queryKey: ["catalog_items", "active"],
+    queryFn: async () => ((await supabase.from("catalog_items").select("id,name,description,kind").eq("active", true).order("name")).data ?? []) as { id: string; name: string; description: string | null; kind: string }[],
+  });
+  const [target, setTarget] = useState<Invoice | null>(null);
+  const [picked, setPicked] = useState<string[]>([]);
+  const [summary, setSummary] = useState("");
+  const [saving, setSaving] = useState(false);
+  async function confirmPay() {
+    if (!target) return;
+    const d = dates[target.id] || today;
+    const services = catalog.filter((c) => picked.includes(c.id)).map((c) => ({ name: c.name, description: c.description }));
+    setSaving(true);
+    const { error } = await supabase.from("invoices").update({ status: "paga", paid_at: new Date(d + "T12:00").toISOString(), services_done: services, work_summary: summary.trim() || null } as never).eq("id", target.id);
+    setSaving(false);
     if (error) return toast.error("Não foi possível atualizar.");
-    toast.success(undo ? "Baixa desfeita" : "Pagamento registrado");
+    toast.success("Pagamento registrado");
+    setTarget(null);
+    qc.invalidateQueries({ queryKey: ["invoices"] });
+  }
+  async function pay(i: Invoice, undo = false) {
+    if (!undo) { setTarget(i); setPicked([]); setSummary(""); return; }
+    const { error } = await supabase.from("invoices").update({ status: "pendente", paid_at: null } as never).eq("id", i.id);
+    if (error) return toast.error("Não foi possível atualizar.");
+    toast.success("Baixa desfeita");
     qc.invalidateQueries({ queryKey: ["invoices"] });
   }
   const open = invoices.filter((i) => i.status === "pendente");
@@ -394,6 +416,26 @@ function BaixaFatura() {
           <InvoiceCard key={i.id} i={i} clientName={name(i.client_id)} actions={<Button variant="ghost" size="sm" onClick={() => pay(i, true)}>Desfazer baixa</Button>} />
         ))}
       </div>
+      <Dialog open={!!target} onOpenChange={(o) => !o && setTarget(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Dar baixa — serviços realizados</DialogTitle></DialogHeader>
+          {target && <p className="text-sm text-muted-foreground">{target.description} · pagamento em {(dates[target.id] || today).split("-").reverse().join("/")}</p>}
+          <div className="max-h-64 space-y-2 overflow-y-auto rounded-lg border border-border p-3">
+            {catalog.length === 0 && <p className="text-sm text-muted-foreground">Nenhum serviço cadastrado em Financeiro → Serviços.</p>}
+            {catalog.map((c) => (
+              <label key={c.id} className="flex cursor-pointer items-start gap-2 text-sm">
+                <Checkbox checked={picked.includes(c.id)} onCheckedChange={(v) => setPicked(v ? [...picked, c.id] : picked.filter((x) => x !== c.id))} />
+                <span>{c.name}{c.description ? <span className="block text-xs text-muted-foreground">{c.description}</span> : null}</span>
+              </label>
+            ))}
+          </div>
+          <div className="space-y-1.5"><Label>O que foi feito no período (o cliente verá)</Label><Textarea value={summary} onChange={(e) => setSummary(e.target.value)} placeholder="Ex.: 12 posts, 8 stories, 2 reels, relatório mensal…" /></div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTarget(null)}>Cancelar</Button>
+            <Button variant="neon" disabled={saving} onClick={confirmPay}>{saving && <Loader2 className="animate-spin" />} Confirmar baixa</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

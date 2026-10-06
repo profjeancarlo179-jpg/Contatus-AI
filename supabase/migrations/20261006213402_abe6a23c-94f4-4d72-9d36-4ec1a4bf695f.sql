@@ -1,0 +1,1 @@
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS services_done jsonb NOT NULL DEFAULT '[]'::jsonb, ADD COLUMN IF NOT EXISTS work_summary text;
