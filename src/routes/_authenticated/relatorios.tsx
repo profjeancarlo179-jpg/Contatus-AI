@@ -96,11 +96,13 @@ function Relatorios() {
         <h1 className="text-3xl font-bold">Relatórios</h1>
         <p className="text-muted-foreground">Métricas das redes sociais, liberadas pelo Adm para cada cliente.</p>
       </div>
-      <Tabs defaultValue={sub.first(staff ? "adm" : "cliente")} key={String(staff) + sub.ready}>
+      <Tabs defaultValue={sub.first(staff ? "dashboard" : "cliente")} key={String(staff) + sub.ready}>
         <TabsList>
+          {staff && sub.can("dashboard") && <TabsTrigger value="dashboard">Dashboard</TabsTrigger>}
           {sub.can("cliente") && <TabsTrigger value="cliente">Cliente</TabsTrigger>}
           {staff && sub.can("adm") && <TabsTrigger value="adm">Adm</TabsTrigger>}
         </TabsList>
+        {staff && <TabsContent value="dashboard" className="mt-6"><DashboardView /></TabsContent>}
         <TabsContent value="cliente" className="mt-6"><ClientView /></TabsContent>
         {staff && <TabsContent value="adm" className="mt-6"><AdmView /></TabsContent>}
       </Tabs>
@@ -250,10 +252,6 @@ function AdmView() {
     queryKey: ["clients"],
     queryFn: async () => ((await supabase.rpc("list_clients")).data ?? []) as Client[],
   });
-  const { data: reports = [] } = useQuery({
-    queryKey: ["reports", "all"],
-    queryFn: async () => ((await supabase.from("reports").select("*").order("created_at", { ascending: false })).data ?? []) as unknown as Report[],
-  });
   const [clientId, setClientId] = useState("");
   const [title, setTitle] = useState("");
   const [period, setPeriod] = useState("");
@@ -305,19 +303,8 @@ function AdmView() {
     qc.invalidateQueries({ queryKey: ["reports"] });
   }
 
-  async function toggle(r: Report) {
-    const { error } = await supabase.from("reports").update({ released: !r.released, updated_at: new Date().toISOString() }).eq("id", r.id);
-    if (error) return toast.error(error.message);
-    qc.invalidateQueries({ queryKey: ["reports"] });
-  }
-  async function remove(r: Report) {
-    if (!confirm("Excluir relatório?")) return;
-    await supabase.from("reports").delete().eq("id", r.id);
-    qc.invalidateQueries({ queryKey: ["reports"] });
-  }
-
   return (
-    <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
+    <div className="mx-auto max-w-2xl">
       <div className="glass h-fit space-y-4 rounded-xl p-6">
         <h2 className="font-semibold">Novo relatório</h2>
         <div className="space-y-1.5">
@@ -387,23 +374,69 @@ function AdmView() {
           <Button variant="neon" disabled={saving} onClick={() => save(true)}>{saving && <Loader2 className="animate-spin" />} Liberar para cliente</Button>
         </div>
       </div>
-      <div className="space-y-4">
-        {reports.length === 0 && <div className="glass rounded-xl p-10 text-center text-muted-foreground">Nenhum relatório criado.</div>}
-        {reports.map((r) => (
-          <ReportCard
-            key={r.id}
-            r={r}
-            clientName={nameOf(r.client_id)}
-            actions={
-              <div className="flex items-center gap-2">
-                <span className={`rounded-full px-2.5 py-0.5 text-xs ${r.released ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{r.released ? "Liberado" : "Rascunho"}</span>
-                <Button size="sm" variant="secondary" onClick={() => toggle(r)}>{r.released ? <><EyeOff /> Ocultar</> : <><Eye /> Liberar</>}</Button>
-                <Button size="icon" variant="ghost" onClick={() => remove(r)}><Trash2 /></Button>
-              </div>
-            }
-          />
-        ))}
-      </div>
+    </div>
+  );
+}
+
+function DashboardView() {
+  const qc = useQueryClient();
+  const { data: clients = [] } = useQuery({
+    queryKey: ["clients"],
+    queryFn: async () => ((await supabase.rpc("list_clients")).data ?? []) as Client[],
+  });
+  const { data: reports = [] } = useQuery({
+    queryKey: ["reports", "all"],
+    queryFn: async () => ((await supabase.from("reports").select("*").order("created_at", { ascending: false })).data ?? []) as unknown as Report[],
+  });
+  const nameOf = (id: string) => { const c = clients.find((x) => x.id === id); return c ? c.full_name || c.email || "" : ""; };
+
+  async function toggle(r: Report) {
+    const { error } = await supabase.from("reports").update({ released: !r.released, updated_at: new Date().toISOString() }).eq("id", r.id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["reports"] });
+  }
+  async function remove(r: Report) {
+    if (!confirm("Excluir relatório?")) return;
+    await supabase.from("reports").delete().eq("id", r.id);
+    qc.invalidateQueries({ queryKey: ["reports"] });
+  }
+
+  const byClient = new Map<string, Report[]>();
+  for (const r of reports) {
+    const arr = byClient.get(r.client_id) ?? [];
+    arr.push(r);
+    byClient.set(r.client_id, arr);
+  }
+  const groups = [...byClient.entries()].sort((a, b) => nameOf(a[0]).localeCompare(nameOf(b[0]), "pt-BR"));
+
+  if (reports.length === 0) return <div className="glass rounded-xl p-10 text-center text-muted-foreground">Nenhum relatório criado. Gere o primeiro na aba Adm.</div>;
+
+  return (
+    <div className="space-y-8">
+      {groups.map(([cid, rs]) => (
+        <div key={cid} className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3 border-b border-border pb-2">
+            <h2 className="font-display text-xl font-semibold">{nameOf(cid) || "Cliente removido"}</h2>
+            <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs text-primary">{rs.length} relatório(s)</span>
+            <span className="text-xs text-muted-foreground">
+              {rs.filter((r) => r.released).length} liberado(s) · {rs.filter((r) => !r.released).length} rascunho(s)
+            </span>
+          </div>
+          {rs.map((r) => (
+            <ReportCard
+              key={r.id}
+              r={r}
+              actions={
+                <div className="flex items-center gap-2">
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs ${r.released ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{r.released ? "Liberado" : "Rascunho"}</span>
+                  <Button size="sm" variant="secondary" onClick={() => toggle(r)}>{r.released ? <><EyeOff /> Ocultar</> : <><Eye /> Liberar</>}</Button>
+                  <Button size="icon" variant="ghost" onClick={() => remove(r)}><Trash2 /></Button>
+                </div>
+              }
+            />
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
