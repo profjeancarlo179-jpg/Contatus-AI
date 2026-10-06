@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.set_role_tabs(text, text[]) FROM PUBLIC, anon;
