@@ -303,19 +303,8 @@ function AdmView() {
     qc.invalidateQueries({ queryKey: ["reports"] });
   }
 
-  async function toggle(r: Report) {
-    const { error } = await supabase.from("reports").update({ released: !r.released, updated_at: new Date().toISOString() }).eq("id", r.id);
-    if (error) return toast.error(error.message);
-    qc.invalidateQueries({ queryKey: ["reports"] });
-  }
-  async function remove(r: Report) {
-    if (!confirm("Excluir relatório?")) return;
-    await supabase.from("reports").delete().eq("id", r.id);
-    qc.invalidateQueries({ queryKey: ["reports"] });
-  }
-
   return (
-    <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
+    <div className="mx-auto max-w-2xl">
       <div className="glass h-fit space-y-4 rounded-xl p-6">
         <h2 className="font-semibold">Novo relatório</h2>
         <div className="space-y-1.5">
