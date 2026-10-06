@@ -39,12 +39,12 @@ function Login() {
     setLoading(true);
     try {
       if (mode === "in") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
         if (error) throw error;
         navigate({ to: "/painel" });
       } else {
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: email.trim().toLowerCase(),
           password,
           options: { emailRedirectTo: window.location.origin, data: { full_name: name, agency_name: agency } },
         });
