@@ -1,8 +1,9 @@
-import { Instagram, Facebook, Youtube, Music2, MessageCircle, Globe, Mail, Phone, MapPin, ShoppingBag, Calendar, FileText, Link2, Linkedin, X, Send, Heart, Camera, type LucideIcon } from "lucide-react";
+import { Instagram, Facebook, Youtube, Music2, MessageCircle, Globe, Mail, Phone, MapPin, ShoppingBag, Calendar, FileText, Link2, Linkedin, X, Send, Heart, Camera, Upload, type LucideIcon } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BIO_THEMES, bioAppearance, type BioAppearance } from "@/lib/bio";
+import { BIO_THEMES, bioAppearance, bioIconImage, type BioAppearance } from "@/lib/bio";
 
 const ICONS: { key: string; label: string; icon: LucideIcon }[] = [
   { key: "none", label: "Sem ícone", icon: X }, { key: "instagram", label: "Instagram", icon: Instagram },
