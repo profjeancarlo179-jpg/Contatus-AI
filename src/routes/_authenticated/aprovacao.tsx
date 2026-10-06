@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { CheckCircle2, Copy, ImageIcon, Link2, Mail, Plus, Send, Timer } from "lucide-react";
+import { CheckCircle2, Copy, ImageIcon, Link2, Mail, Pencil, Plus, Send, Timer, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchContents, FORMAT_LABEL, isVideo, timeLeft, useMediaUrls, type Content } from "@/lib/content";
@@ -49,9 +49,11 @@ function Aprovacao() {
           <TabsTrigger value="geral">Geral</TabsTrigger>
           <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
           <TabsTrigger value="postar">Postar</TabsTrigger>
+          <TabsTrigger value="reprovado">Reprovado</TabsTrigger>
         </TabsList>
         <TabsContent value="arquivos" className="mt-6"><ApprovalFiles data={data} onOpen={open} /></TabsContent>
         <TabsContent value="postar" className="mt-6"><PostarTab data={data} /></TabsContent>
+        <TabsContent value="reprovado" className="mt-6"><ReprovadoTab data={data} onOpen={open} /></TabsContent>
         <TabsContent value="geral" className="mt-6">
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
         <aside className="glass h-fit max-h-[75vh] overflow-y-auto rounded-xl p-2">
@@ -180,6 +182,61 @@ function SendCard({ content }: { content: Content }) {
           {content.status === "rejected" && <FeedbackCard content={content} />}
         </div>
       )}
+    </div>
+  );
+}
+
+function ReprovadoTab({ data, onOpen }: { data: Content[]; onOpen: (id: string) => void }) {
+  const rejected = data
+    .filter((c) => c.status === "rejected")
+    .sort((a, b) => (b.decided_at ?? "").localeCompare(a.decided_at ?? ""));
+  if (rejected.length === 0)
+    return (
+      <div className="glass rounded-xl border-dashed p-8 text-center text-sm text-muted-foreground">
+        Nenhuma arte reprovada ainda. Quando o cliente reprovar uma arte, ela aparece aqui com os motivos apontados.
+      </div>
+    );
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {rejected.map((c) => <ReprovadoCard key={c.id} c={c} onOpen={onOpen} />)}
+    </div>
+  );
+}
+
+function ReprovadoCard({ c, onOpen }: { c: Content; onOpen: (id: string) => void }) {
+  const [thumb] = useMediaUrls(c.image_urls.slice(0, 1));
+  return (
+    <div className="glass overflow-hidden rounded-xl">
+      <div className="aspect-square bg-muted/40">
+        {thumb ? (
+          isVideo(c.image_urls[0]) ? <video src={thumb} className="h-full w-full object-cover" muted /> : <img src={thumb} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full items-center justify-center text-muted-foreground"><ImageIcon className="h-8 w-8" /></div>
+        )}
+      </div>
+      <div className="space-y-1.5 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate text-sm font-medium">{c.title}</span>
+          <XCircle className="h-4 w-4 shrink-0 text-destructive" />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {FORMAT_LABEL[c.format]}{c.client_name ? ` · ${c.client_name}` : ""}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Reprovada em {c.decided_at ? new Date(c.decided_at).toLocaleDateString("pt-BR") : "—"}
+        </p>
+        {c.rejection_reasons.length > 0 && (
+          <div className="flex flex-wrap gap-1 pt-1">
+            {c.rejection_reasons.map((r) => (
+              <span key={r} className="rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-[11px] text-destructive">{r}</span>
+            ))}
+          </div>
+        )}
+        {c.feedback && <p className="text-xs text-muted-foreground">“{c.feedback}”</p>}
+        <Button size="sm" variant="secondary" className="mt-2 w-full" onClick={() => onOpen(c.id)}>
+          <Pencil /> Abrir no editor
+        </Button>
+      </div>
     </div>
   );
 }
