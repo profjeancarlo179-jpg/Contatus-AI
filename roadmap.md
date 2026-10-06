@@ -1,6 +1,7 @@
 # Contatus AI — Roadmap
-- [ ] Financeiro: botão "Visualizar fatura" nas Faturas geradas, com Imprimir e Gerar PDF para salvar
-- [ ] Impressão da fatura em página única A4 (sem páginas extras em branco)
+- [x] Financeiro: botão "Visualizar fatura" nas Faturas geradas, com Imprimir e Gerar PDF para salvar
+- [x] Impressão da fatura em página única A4 (sem páginas extras em branco)
+
 
 
 - [x] Personalizar bio: ícones dos links, cores, estilo de botões e fonte; salvar e exibir na página pública
