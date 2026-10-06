@@ -21,20 +21,22 @@ export function socialHref(key: BioSocialKey, raw?: string): string | null {
   if (key === "whatsapp") { const d = v.replace(/\D/g, ""); if (d.length < 10) return null; return `https://wa.me/${d.length <= 11 ? "55" + d : d}`; }
   if (/^https?:\/\//i.test(v)) return safeBioUrl(v);
   if (!/^[\w.-]{1,60}$/.test(handle)) return null;
-  if (key === "instagram") return `https://instagram.com/${handle}`;
-  if (key === "tiktok") return `https://tiktok.com/@${handle}`;
-  if (key === "facebook") return `https://facebook.com/${handle}`;
-  if (key === "youtube") return `https://youtube.com/@${handle}`;
-  return `https://linkedin.com/in/${handle}`;
+  if (key === "instagram") return `https://www.instagram.com/${handle}/`;
+  if (key === "tiktok") return `https://www.tiktok.com/@${handle}`;
+  if (key === "facebook") return `https://www.facebook.com/${handle}`;
+  if (key === "youtube") return `https://www.youtube.com/@${handle}`;
+  return `https://www.linkedin.com/in/${handle}`;
 }
 
-export function BioSocialIcons({ socials, interactive }: { socials?: Record<string, string>; interactive?: boolean }) {
+const isMobile = () => typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+export function BioSocialIcons({ socials }: { socials?: Record<string, string>; interactive?: boolean }) {
   const items = BIO_SOCIALS.map(s => ({ ...s, href: socialHref(s.key, socials?.[s.key]) })).filter(s => s.href);
   if (!items.length) return null;
+  // No celular, abre na mesma aba para o sistema entregar o link ao app instalado (Instagram, WhatsApp...).
   return <div className="mt-4 flex flex-wrap justify-center gap-4">
-    {items.map(({ key, label, icon: Icon, href }) => interactive
-      ? <a key={key} href={href!} target="_blank" rel="noopener noreferrer" aria-label={label} title={label} className="opacity-90 transition hover:opacity-100 hover:scale-110"><Icon className="h-6 w-6" /></a>
-      : <span key={key} title={label}><Icon className="h-6 w-6" /></span>)}
+    {items.map(({ key, label, icon: Icon, href }) =>
+      <a key={key} href={href!} onClick={e => { if (isMobile() || href!.startsWith("mailto:")) { e.preventDefault(); window.location.href = href!; } }} target="_blank" rel="noopener noreferrer" aria-label={`Abrir ${label}`} title={`Abrir ${label}`} className="cursor-pointer opacity-90 transition hover:scale-110 hover:opacity-100"><Icon className="h-6 w-6" /></a>)}
   </div>;
 }
 
