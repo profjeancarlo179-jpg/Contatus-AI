@@ -349,6 +349,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          paused: boolean
         }
         Insert: {
           agency_name?: string | null
@@ -358,6 +359,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          paused?: boolean
         }
         Update: {
           agency_name?: string | null
@@ -367,6 +369,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          paused?: boolean
         }
         Relationships: []
       }
@@ -509,6 +512,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          paused: boolean
           role: string
         }[]
       }
@@ -516,6 +520,7 @@ export type Database = {
         Args: never
         Returns: {
           approved: boolean
+          paused: boolean
           role: string
         }[]
       }
@@ -534,6 +539,10 @@ export type Database = {
         Args: { _approved: boolean; _role: string; _user: string }
         Returns: undefined
       }
+      set_user_paused: {
+        Args: { _paused: boolean; _user: string }
+        Returns: undefined
+      }
       set_user_tabs: {
         Args: { _tabs: string[]; _user: string }
         Returns: undefined
@@ -545,6 +554,10 @@ export type Database = {
           _reasons: string[]
           _token: string
         }
+        Returns: undefined
+      }
+      update_user_info: {
+        Args: { _agency_name: string; _full_name: string; _user: string }
         Returns: undefined
       }
     }
