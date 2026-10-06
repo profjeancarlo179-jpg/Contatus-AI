@@ -1,4 +1,6 @@
 # Contatus AI — Roadmap
+- [ ] Financeiro: botão "Visualizar fatura" nas Faturas geradas, com Imprimir e Gerar PDF para salvar
+
 - [x] Personalizar bio: ícones dos links, cores, estilo de botões e fonte; salvar e exibir na página pública
 - [x] Aba Link do perfil: edição de foto, descrição e links; página pública sem login
 - [x] Banco de dados (perfis, conteúdos, auditorias, arquivos de mídia)
