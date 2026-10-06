@@ -18,4 +18,4 @@
 - [x] Aba Configurações (integrações de IA/API — conectar depois)
 - [x] Aba Clientes: cadastro (logo, artes padrão, perfil, responsável, redes sociais, anotações)
 - [x] Menu em duas linhas
-- [ ] Aprovação: sub-abas Geral e Arquivos (aguardando, salvos para editar, aprovados com data)
+- [x] Aprovação: sub-abas Geral e Arquivos (aguardando, salvos para editar, aprovados com data)
