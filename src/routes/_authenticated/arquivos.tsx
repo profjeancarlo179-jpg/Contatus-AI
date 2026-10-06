@@ -1,7 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Clock, Copy, ExternalLink, ImageIcon, Repeat, Trash2 } from "lucide-react";
+import { Clock, Copy, ImageIcon, Repeat, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchContents, FORMAT_LABEL, isVideo, timeLeft, useMediaUrls, type Content } from "@/lib/content";
@@ -191,6 +191,7 @@ function PendingTab({ data }: { data: Content[] }) {
   const pending = data
     .filter((c) => c.status === "pending")
     .sort((a, b) => (b.sent_at ?? b.updated_at).localeCompare(a.sent_at ?? a.updated_at));
+  const [openToken, setOpenToken] = useState<string | null>(null);
   if (pending.length === 0)
     return (
       <div className="glass rounded-xl border-dashed p-10 text-center text-muted-foreground">
@@ -198,22 +199,29 @@ function PendingTab({ data }: { data: Content[] }) {
       </div>
     );
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {pending.map((c) => <PendingCard key={c.id} c={c} />)}
-    </div>
+    <>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {pending.map((c) => <PendingCard key={c.id} c={c} onOpen={() => setOpenToken(c.share_token)} />)}
+      </div>
+      <Dialog open={!!openToken} onOpenChange={(o) => !o && setOpenToken(null)}>
+        <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto">
+          <DialogHeader><DialogTitle>Aprovação de arte</DialogTitle></DialogHeader>
+          {openToken && <ApprovalPanel token={openToken} embedded />}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
-function PendingCard({ c }: { c: Content }) {
-  const navigate = useNavigate();
+function PendingCard({ c, onOpen }: { c: Content; onOpen: () => void }) {
   const [thumb] = useMediaUrls(c.image_urls.slice(0, 1));
   const link = `https://contatus-ai.lovable.app/a/${c.share_token}`;
   return (
     <div className="glass overflow-hidden rounded-xl">
       <button
-        onClick={() => navigate({ to: "/aprovacao", search: { id: c.id } })}
+        onClick={onOpen}
         className="relative block aspect-square w-full bg-muted"
-        title="Abrir em Pré-visualizar & Aprovação"
+        title="Ver como o cliente vê e aprovar"
       >
         {thumb ? (
           isVideo(c.image_urls[0]) ? <video src={thumb} className="h-full w-full object-cover" muted /> : <img src={thumb} alt={c.title} className="h-full w-full object-cover" />
@@ -233,8 +241,8 @@ function PendingCard({ c }: { c: Content }) {
           {c.expires_at ? `decide em ${timeLeft(c.expires_at)}` : "aguardando cliente"}
         </div>
         <div className="flex gap-2 pt-1">
-          <Button size="sm" variant="neon" className="flex-1" onClick={() => navigate({ to: "/aprovacao", search: { id: c.id } })}>
-            <ExternalLink /> Abrir no editor
+          <Button size="sm" variant="neon" className="flex-1" onClick={onOpen}>
+            Ver e aprovar
           </Button>
           <Button size="sm" variant="secondary" onClick={() => { navigator.clipboard.writeText(link); toast.success("Link copiado"); }} title="Copiar link de aprovação">
             <Copy />
