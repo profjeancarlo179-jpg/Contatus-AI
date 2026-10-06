@@ -159,8 +159,9 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
   }
 
   async function createLogin() {
-    const email = (loginEmail || d.resp_email || "").trim();
-    if (!email || loginPass.length < 6) return toast.error("Informe e-mail e senha (mín. 6 caracteres)");
+    const email = (loginEmail || d.resp_email || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return toast.error("Informe um e-mail válido (ex: nome@empresa.com)");
+    if (loginPass.length < 6) return toast.error("A senha precisa ter no mínimo 6 caracteres");
     setCreating(true);
     try {
       const r = await createFn({ data: { email, password: loginPass, full_name: d.resp_name || d.name, agency_name: d.name, role: "client" } });
