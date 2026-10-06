@@ -400,6 +400,9 @@ function AdmView() {
 function DashboardView({ archived = false }: { archived?: boolean }) {
   const qc = useQueryClient();
   const [openId, setOpenId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [clientFilter, setClientFilter] = useState("all");
+  const [periodFilter, setPeriodFilter] = useState("all");
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: async () => ((await supabase.rpc("list_clients")).data ?? []) as Client[],
@@ -408,8 +411,18 @@ function DashboardView({ archived = false }: { archived?: boolean }) {
     queryKey: ["reports", "all"],
     queryFn: async () => ((await supabase.from("reports").select("*").order("created_at", { ascending: false })).data ?? []) as unknown as Report[],
   });
-  const reports = allReports.filter((r) => r.released === archived);
   const nameOf = (id: string) => { const c = clients.find((x) => x.id === id); return c ? c.full_name || c.email || "" : ""; };
+  const allPeriods = [...new Set(allReports.map((r) => r.period).filter((p): p is string => !!p))];
+  const q = search.trim().toLowerCase();
+  const reports = allReports
+    .filter((r) => r.released === archived)
+    .filter((r) => clientFilter === "all" || r.client_id === clientFilter)
+    .filter((r) => periodFilter === "all" || (r.period ?? "") === periodFilter)
+    .filter((r) => {
+      if (!q) return true;
+      const hay = [r.title, r.network, r.period ?? "", nameOf(r.client_id), r.notes ?? ""].join(" ").toLowerCase();
+      return hay.includes(q);
+    });
 
   async function toggle(r: Report) {
     const { error } = await supabase.from("reports").update({ released: !r.released, updated_at: new Date().toISOString() }).eq("id", r.id);
