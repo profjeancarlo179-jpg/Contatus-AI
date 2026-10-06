@@ -12,3 +12,4 @@
 - [x] Página cliente: Aprovar (PIN 4 dígitos) / Reprovar (motivos + texto)
 - [x] Aprovação automática após 3 dias; selo e notas do cliente em Arquivos
 - [x] Admin Master para jean179@gmail.com e profjeancarlo179@gmail.com (papel atribuído no cadastro)
+- [ ] Perfis Cliente / Adm / Adm Master + aba Permissões e aprovação de acesso (só Adm Master)
