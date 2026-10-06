@@ -50,6 +50,72 @@ export type Database = {
         }
         Relationships: []
       }
+      clients: {
+        Row: {
+          brand_arts: string[]
+          brand_colors: string | null
+          brand_fonts: string | null
+          created_at: string
+          created_by: string
+          id: string
+          logo_path: string | null
+          name: string
+          notes: string | null
+          profile_description: string | null
+          resp_document: string | null
+          resp_email: string | null
+          resp_name: string | null
+          resp_phone: string | null
+          resp_role: string | null
+          segment: string | null
+          socials: Json
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          brand_arts?: string[]
+          brand_colors?: string | null
+          brand_fonts?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          logo_path?: string | null
+          name: string
+          notes?: string | null
+          profile_description?: string | null
+          resp_document?: string | null
+          resp_email?: string | null
+          resp_name?: string | null
+          resp_phone?: string | null
+          resp_role?: string | null
+          segment?: string | null
+          socials?: Json
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          brand_arts?: string[]
+          brand_colors?: string | null
+          brand_fonts?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          logo_path?: string | null
+          name?: string
+          notes?: string | null
+          profile_description?: string | null
+          resp_document?: string | null
+          resp_email?: string | null
+          resp_name?: string | null
+          resp_phone?: string | null
+          resp_role?: string | null
+          segment?: string | null
+          socials?: Json
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       contents: {
         Row: {
           art_approved: boolean | null
