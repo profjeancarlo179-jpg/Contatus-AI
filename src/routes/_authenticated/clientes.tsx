@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Building2, ImageIcon, KeyRound, Loader2, Lock, Plus, Search, Trash2, Upload } from "lucide-react";
+import { Building2, Eye, EyeOff, ImageIcon, KeyRound, Loader2, Lock, Plus, Search, Trash2, Upload } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { createUser } from "@/lib/users.functions";
 import { toast } from "sonner";
@@ -129,6 +129,7 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPass, setLoginPass] = useState("");
   const [creating, setCreating] = useState(false);
+  const [showPass, setShowPass] = useState(false);
   const { data: users = [] } = useQuery({
     queryKey: ["client-users"],
     queryFn: async () => ((await supabase.rpc("list_clients")).data ?? []) as { id: string; email: string | null; full_name: string | null }[],
@@ -160,7 +161,7 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
 
   async function createLogin() {
     const email = (loginEmail || d.resp_email || "").trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return toast.error("Informe um e-mail válido (ex: nome@empresa.com)");
+    if (!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(email)) return toast.error("Informe um e-mail válido (ex: nome@empresa.com)");
     if (loginPass.length < 6) return toast.error("A senha precisa ter no mínimo 6 caracteres");
     setCreating(true);
     try {
@@ -179,7 +180,8 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
       toast.success("Login criado, vinculado e cliente salvo");
       onSaved(res.data.id);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Falha ao criar login");
+      const msg = e instanceof Error ? e.message : "";
+      toast.error(msg.includes("invalid_string") || msg.includes("Invalid email") ? "Informe um e-mail válido (ex: nome@empresa.com)" : msg || "Falha ao criar login");
     } finally { setCreating(false); }
   }
 
@@ -299,7 +301,15 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
           <p className="text-sm text-muted-foreground">Ou crie um login novo para este cliente:</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5"><Label>E-mail (usuário)</Label><Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder={d.resp_email ?? ""} /></div>
-            <div className="space-y-1.5"><Label>Senha (mín. 6)</Label><Input type="text" value={loginPass} onChange={(e) => setLoginPass(e.target.value)} /></div>
+            <div className="space-y-1.5">
+              <Label>Senha (mín. 6)</Label>
+              <div className="relative">
+                <Input type={showPass ? "text" : "password"} value={loginPass} onChange={(e) => setLoginPass(e.target.value)} className="pr-10" />
+                <button type="button" onClick={() => setShowPass((v) => !v)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label={showPass ? "Ocultar senha" : "Mostrar senha"}>
+                  {showPass ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+            </div>
           </div>
           <Button variant="outline" disabled={creating} onClick={createLogin}>{creating && <Loader2 className="animate-spin" />} Criar login, vincular e salvar</Button>
         </div>
