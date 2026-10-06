@@ -10,33 +10,130 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedAnaliseRouteImport } from './routes/_authenticated/analise'
+import { Route as AuthenticatedAprovacaoRouteImport } from './routes/_authenticated/aprovacao'
+import { Route as AuthenticatedArquivosRouteImport } from './routes/_authenticated/arquivos'
+import { Route as AuthenticatedCriarRouteImport } from './routes/_authenticated/criar'
+import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthenticatedPermissoesRouteImport } from './routes/_authenticated/permissoes'
+import { Route as AprovarTokenRouteImport } from './routes/aprovar.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAnaliseRoute = AuthenticatedAnaliseRouteImport.update({
+  id: '/analise',
+  path: '/analise',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAprovacaoRoute = AuthenticatedAprovacaoRouteImport.update({
+  id: '/aprovacao',
+  path: '/aprovacao',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedArquivosRoute = AuthenticatedArquivosRouteImport.update({
+  id: '/arquivos',
+  path: '/arquivos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCriarRoute = AuthenticatedCriarRouteImport.update({
+  id: '/criar',
+  path: '/criar',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPermissoesRoute = AuthenticatedPermissoesRouteImport.update({
+  id: '/permissoes',
+  path: '/permissoes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AprovarTokenRoute = AprovarTokenRouteImport.update({
+  id: '/aprovar/$token',
+  path: '/aprovar/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analise': typeof AuthenticatedAnaliseRoute
+  '/aprovacao': typeof AuthenticatedAprovacaoRoute
+  '/arquivos': typeof AuthenticatedArquivosRoute
+  '/criar': typeof AuthenticatedCriarRoute
+  '/painel': typeof AuthenticatedPainelRoute
+  '/permissoes': typeof AuthenticatedPermissoesRoute
+  '/aprovar/$token': typeof AprovarTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analise': typeof AuthenticatedAnaliseRoute
+  '/aprovacao': typeof AuthenticatedAprovacaoRoute
+  '/arquivos': typeof AuthenticatedArquivosRoute
+  '/criar': typeof AuthenticatedCriarRoute
+  '/painel': typeof AuthenticatedPainelRoute
+  '/permissoes': typeof AuthenticatedPermissoesRoute
+  '/aprovar/$token': typeof AprovarTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/analise': typeof AuthenticatedAnaliseRoute
+  '/_authenticated/aprovacao': typeof AuthenticatedAprovacaoRoute
+  '/_authenticated/arquivos': typeof AuthenticatedArquivosRoute
+  '/_authenticated/criar': typeof AuthenticatedCriarRoute
+  '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/_authenticated/permissoes': typeof AuthenticatedPermissoesRoute
+  '/aprovar/$token': typeof AprovarTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/analise'
+    | '/aprovacao'
+    | '/arquivos'
+    | '/criar'
+    | '/painel'
+    | '/permissoes'
+    | '/aprovar/$token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/analise'
+    | '/aprovacao'
+    | '/arquivos'
+    | '/criar'
+    | '/painel'
+    | '/permissoes'
+    | '/aprovar/$token'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/_authenticated/analise'
+    | '/_authenticated/aprovacao'
+    | '/_authenticated/arquivos'
+    | '/_authenticated/criar'
+    | '/_authenticated/painel'
+    | '/_authenticated/permissoes'
+    | '/aprovar/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AprovarTokenRoute: typeof AprovarTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +145,90 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/analise': {
+      id: '/_authenticated/analise'
+      path: '/analise'
+      fullPath: '/analise'
+      preLoaderRoute: typeof AuthenticatedAnaliseRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/aprovacao': {
+      id: '/_authenticated/aprovacao'
+      path: '/aprovacao'
+      fullPath: '/aprovacao'
+      preLoaderRoute: typeof AuthenticatedAprovacaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/arquivos': {
+      id: '/_authenticated/arquivos'
+      path: '/arquivos'
+      fullPath: '/arquivos'
+      preLoaderRoute: typeof AuthenticatedArquivosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/criar': {
+      id: '/_authenticated/criar'
+      path: '/criar'
+      fullPath: '/criar'
+      preLoaderRoute: typeof AuthenticatedCriarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/painel': {
+      id: '/_authenticated/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof AuthenticatedPainelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/permissoes': {
+      id: '/_authenticated/permissoes'
+      path: '/permissoes'
+      fullPath: '/permissoes'
+      preLoaderRoute: typeof AuthenticatedPermissoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/aprovar/$token': {
+      id: '/aprovar/$token'
+      path: '/aprovar/$token'
+      fullPath: '/aprovar/$token'
+      preLoaderRoute: typeof AprovarTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAnaliseRoute: typeof AuthenticatedAnaliseRoute
+  AuthenticatedAprovacaoRoute: typeof AuthenticatedAprovacaoRoute
+  AuthenticatedArquivosRoute: typeof AuthenticatedArquivosRoute
+  AuthenticatedCriarRoute: typeof AuthenticatedCriarRoute
+  AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+  AuthenticatedPermissoesRoute: typeof AuthenticatedPermissoesRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAnaliseRoute: AuthenticatedAnaliseRoute,
+  AuthenticatedAprovacaoRoute: AuthenticatedAprovacaoRoute,
+  AuthenticatedArquivosRoute: AuthenticatedArquivosRoute,
+  AuthenticatedCriarRoute: AuthenticatedCriarRoute,
+  AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+  AuthenticatedPermissoesRoute: AuthenticatedPermissoesRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AprovarTokenRoute: AprovarTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
