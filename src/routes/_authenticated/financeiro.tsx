@@ -16,6 +16,7 @@ import { ServicesCatalog } from "@/components/ServicesCatalog";
 import { InvoiceCard, type Invoice } from "@/components/InvoiceCard";
 import { ContractsTab } from "@/components/ContractsTab";
 import { InvoicePreviewButton } from "@/components/InvoicePreview";
+import { Search } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({
