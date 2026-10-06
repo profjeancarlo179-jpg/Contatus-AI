@@ -704,6 +704,26 @@ export type Database = {
           role: string
         }[]
       }
+      my_decided_contents: {
+        Args: never
+        Returns: {
+          audio: string
+          auto_approved: boolean
+          caption: string
+          client_name: string
+          decided_at: string
+          feedback: string
+          format: string
+          hashtags: string
+          id: string
+          image_urls: string[]
+          location: string
+          rejection_reasons: string[]
+          share_token: string
+          status: string
+          title: string
+        }[]
+      }
       my_pending_contents: {
         Args: never
         Returns: {
@@ -715,6 +735,7 @@ export type Database = {
           title: string
         }[]
       }
+      request_repost: { Args: { _id: string }; Returns: undefined }
       set_role_tabs: {
         Args: { _role: string; _tabs: string[] }
         Returns: undefined
