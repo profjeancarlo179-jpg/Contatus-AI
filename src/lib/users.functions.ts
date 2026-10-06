@@ -15,6 +15,7 @@ export const createUser = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
+  // erros de validação chegam ao cliente como JSON; aqui mantemos mensagens claras
   .handler(async ({ data, context }) => {
     const { data: isMaster } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "master" });
     if (!isMaster) throw new Error("Sem permissão.");
