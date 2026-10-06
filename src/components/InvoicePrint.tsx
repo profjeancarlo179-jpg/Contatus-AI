@@ -30,6 +30,24 @@ function useQr(text: string) {
   return url;
 }
 
+/** Prints only the given invoice paper on a clean A4 page (single page, no leftovers). */
+export function printInvoicePaper(source: HTMLElement | null) {
+  const paper = source?.querySelector(".inv-paper");
+  if (!paper) return;
+  let root = document.getElementById("print-root");
+  if (!root) {
+    root = document.createElement("div");
+    root.id = "print-root";
+    document.body.appendChild(root);
+  }
+  root.innerHTML = "";
+  root.appendChild(paper.cloneNode(true));
+  document.body.classList.add("printing-invoice");
+  const done = () => { document.body.classList.remove("printing-invoice"); root!.innerHTML = ""; window.removeEventListener("afterprint", done); };
+  window.addEventListener("afterprint", done);
+  setTimeout(() => window.print(), 50);
+}
+
 /** Printable invoice (white paper layout). Hidden on screen, shown only when printing. */
 export function InvoicePrint({ i, s, clientName, clientDoc }: { i: Invoice; s: PaymentSettings | null | undefined; clientName: string; clientDoc?: string }) {
   const gen = useQr(s?.pix_qr ? "" : (s?.pix_code ?? ""));
