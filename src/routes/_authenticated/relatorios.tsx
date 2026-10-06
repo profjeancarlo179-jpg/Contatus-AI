@@ -444,14 +444,6 @@ function ExtraFields({ extra, setX }: { extra: ReportExtra; setX: (p: Partial<Re
       <PctList label="Cidades escolhidas (ajuste o %)" placeholder="Cáceres, MT" rows={extra.cities ?? []} onChange={(cities) => setX({ cities })} />
       <PctList label="Principais países" placeholder="Brasil" rows={extra.countries ?? []} onChange={(countries) => setX({ countries })} />
       <GenderAges extra={extra} setX={setX} />
-        <div className="grid grid-cols-[60px_1fr_1fr] gap-1 text-[11px] text-muted-foreground"><span>Idade</span><span>Mulheres</span><span>Homens</span></div>
-        {(extra.ages ?? []).map((a, i) => (
-          <div key={a.range} className="grid grid-cols-[60px_1fr_1fr] items-center gap-1">
-            <span className="text-xs">{a.range}</span>
-            {(["f", "m"] as const).map((g) => <Input key={g} className="h-8" value={a[g]} onChange={(e) => setX({ ages: (extra.ages ?? []).map((z, j) => j === i ? { ...z, [g]: e.target.value.replace(/[^\d,.]/g, "") } : z) })} />)}
-          </div>
-        ))}
-      </div>
       <div className="space-y-1"><Label className="text-xs">Gerado por (usuário)</Label><Input value={extra.generatedBy ?? ""} placeholder="JEAN CARLO" onChange={(e) => setX({ generatedBy: e.target.value })} /></div>
     </div>
   );
