@@ -181,6 +181,21 @@ function CentralFaturas() {
             <SelectItem value="rascunho">Rascunho</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={month} onValueChange={setMonth}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Mês" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os meses</SelectItem>
+            {monthOptions.map((m) => {
+              const [y, mm] = m.split("-");
+              return <SelectItem key={m} value={m}>{new Date(Number(y), Number(mm) - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</SelectItem>;
+            })}
+          </SelectContent>
+        </Select>
+        <Input type="date" className="w-40" value={from} onChange={(e) => setFrom(e.target.value)} aria-label="Data inicial" />
+        <Input type="date" className="w-40" value={to} onChange={(e) => setTo(e.target.value)} aria-label="Data final" />
+        {(month || from || to) && (
+          <Button variant="ghost" size="sm" onClick={() => { setMonth("todos"); setFrom(""); setTo(""); }}>Limpar</Button>
+        )}
       </div>
 
       {isLoading && <Loader2 className="animate-spin" />}
