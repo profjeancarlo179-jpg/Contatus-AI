@@ -100,7 +100,7 @@ function RedirectPreview({ pages }: { pages: Bio[] }) {
       </select>}
       <h2 className="text-sm font-medium text-muted-foreground">Pré-visualização</h2>
       <div className="min-h-[520px] overflow-hidden rounded-lg border border-border bg-background"><BioPreview bio={page} /></div>
-      {page.published && <div className="space-y-3">
+      {(page as Bio & { paused?: boolean }).paused ? <p className="text-sm text-destructive">Esta página está pausada. Entre em contato com o desenvolvedor para reativar.</p> : !page.published ? <p className="text-sm text-muted-foreground">Esta página ainda é um rascunho e não está publicada.</p> : <div className="space-y-3">
         <p className="break-all text-sm text-success">{bioPublicUrl(page.slug)}</p>
         <div className="flex gap-2">
           <Button variant="outline" onClick={async () => { try { await navigator.clipboard.writeText(bioPublicUrl(page.slug)); toast.success("Link copiado"); } catch { toast.error("Não foi possível copiar"); } }}><Copy /> Copiar link</Button>
