@@ -1,3 +1,4 @@
+import { useSubTabs } from "@/lib/access";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -59,16 +60,17 @@ function Criar() {
     navigate({ to: "/arquivos" });
   }
 
+  const sub = useSubTabs("/criar");
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Criar conteúdo</h1>
         <p className="text-muted-foreground">Insira suas artes e legendas e veja como ficam no Instagram.</p>
       </div>
-      <Tabs defaultValue="single">
+      <Tabs defaultValue={sub.first("single")} key={String(sub.ready)}>
         <TabsList>
-          <TabsTrigger value="single">Post individual</TabsTrigger>
-          <TabsTrigger value="batch">Gerador em lote</TabsTrigger>
+          {sub.can("single") && <TabsTrigger value="single">Post individual</TabsTrigger>}
+          {sub.can("batch") && <TabsTrigger value="batch">Gerador em lote</TabsTrigger>}
         </TabsList>
         <TabsContent value="single" className="mt-6">
           <ContentEditor

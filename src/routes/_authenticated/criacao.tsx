@@ -1,3 +1,4 @@
+import { useSubTabs } from "@/lib/access";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Clapperboard, ImageIcon, Settings, Wand2 } from "lucide-react";
@@ -20,17 +21,18 @@ export const Route = createFileRoute("/_authenticated/criacao")({
 });
 
 function Criacao() {
+  const sub = useSubTabs("/criacao");
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Criação de vídeo e imagem</h1>
         <p className="text-muted-foreground">Gere mídias com IA ou edite seus vídeos para o Instagram.</p>
       </div>
-      <Tabs defaultValue="imagem">
+      <Tabs defaultValue={sub.first("imagem")} key={String(sub.ready)}>
         <TabsList>
-          <TabsTrigger value="imagem">Imagem</TabsTrigger>
-          <TabsTrigger value="video">Vídeo</TabsTrigger>
-          <TabsTrigger value="edicao">Edição de vídeo</TabsTrigger>
+          {sub.can("imagem") && <TabsTrigger value="imagem">Imagem</TabsTrigger>}
+          {sub.can("video") && <TabsTrigger value="video">Vídeo</TabsTrigger>}
+          {sub.can("edicao") && <TabsTrigger value="edicao">Edição de vídeo</TabsTrigger>}
         </TabsList>
         <TabsContent value="imagem" className="mt-6">
           <Generator kind="imagem" formats={["Post 1:1", "Carrossel 4:5", "Stories 9:16"]} />

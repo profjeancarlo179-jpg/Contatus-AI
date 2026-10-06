@@ -1,3 +1,4 @@
+import { useSubTabs } from "@/lib/access";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -30,6 +31,7 @@ type Client = { id: string; email: string | null; full_name: string | null; agen
 
 function Financeiro() {
   const { data: access } = useAccess();
+  const sub = useSubTabs("/financeiro");
   if (access && access.role !== "master") return <p className="text-muted-foreground">Somente o Adm Master acessa o Financeiro.</p>;
   return (
     <div className="space-y-6">
@@ -37,8 +39,8 @@ function Financeiro() {
         <h1 className="text-3xl font-bold">Financeiro</h1>
         <p className="text-muted-foreground">Gere faturas para os clientes e libere quando estiverem prontas.</p>
       </div>
-      <Tabs defaultValue="gerar">
-        <TabsList><TabsTrigger value="gerar">Gerar fatura</TabsTrigger><TabsTrigger value="servicos">Serviços</TabsTrigger></TabsList>
+      <Tabs defaultValue={sub.first("gerar")} key={String(sub.ready)}>
+        <TabsList>{sub.can("gerar") && <TabsTrigger value="gerar">Gerar fatura</TabsTrigger>}{sub.can("servicos") && <TabsTrigger value="servicos">Serviços</TabsTrigger>}</TabsList>
         <TabsContent value="gerar" className="mt-6"><GerarFatura /></TabsContent>
         <TabsContent value="servicos" className="mt-6"><ServicesCatalog /></TabsContent>
       </Tabs>

@@ -49,3 +49,29 @@ export function canSeeTab(access: { role: string; tabs: string[] | null } | unde
   if (access?.role === "master" || !access?.tabs) return true;
   return access.tabs.includes(to);
 }
+
+/** Sub-tabs per page. Stored in the same tabs array as "<page>#<key>". */
+export const SUB_TABS: Record<string, { key: string; label: string }[]> = {
+  "/criar": [{ key: "single", label: "Post individual" }, { key: "batch", label: "Gerador em lote" }],
+  "/aprovacao": [{ key: "geral", label: "Geral" }, { key: "arquivos", label: "Arquivos" }, { key: "postar", label: "Postar" }, { key: "reprovado", label: "Reprovado" }],
+  "/arquivos": [{ key: "arquivos", label: "Arquivos" }, { key: "pendentes", label: "Arte pendente de aprovação" }, { key: "aprovadas", label: "Artes aprovadas" }],
+  "/criacao": [{ key: "imagem", label: "Imagem" }, { key: "video", label: "Vídeo" }, { key: "edicao", label: "Edição de vídeo" }],
+  "/link-perfil": [{ key: "novo", label: "Novo" }, { key: "editar", label: "Editar" }, { key: "arquivo", label: "Arquivo" }, { key: "redirect", label: "Link de redirecionamento" }],
+  "/relatorios": [{ key: "cliente", label: "Cliente" }, { key: "adm", label: "Adm" }],
+  "/financeiro": [{ key: "gerar", label: "Gerar fatura" }, { key: "servicos", label: "Serviços" }],
+};
+
+/** If no sub-tab of a page is stored, every sub-tab of that page is allowed. */
+export function canSeeSub(access: { role: string; tabs: string[] | null } | undefined, page: string, key: string) {
+  if (access?.role === "master" || !access?.tabs) return true;
+  const prefix = page + "#";
+  const subs = access.tabs.filter((t) => t.startsWith(prefix));
+  return subs.length === 0 || subs.includes(prefix + key);
+}
+
+export function useSubTabs(page: string) {
+  const { data: access } = useAccess();
+  const can = (key: string) => canSeeSub(access, page, key);
+  const first = (preferred: string) => (can(preferred) ? preferred : SUB_TABS[page]?.find((s) => can(s.key))?.key ?? preferred);
+  return { can, first, ready: !!access };
+}

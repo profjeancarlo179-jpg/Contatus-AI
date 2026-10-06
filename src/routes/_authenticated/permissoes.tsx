@@ -11,7 +11,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { createUser } from "@/lib/users.functions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { APP_TABS, roleAllows } from "@/lib/access";
+import { APP_TABS, SUB_TABS, roleAllows } from "@/lib/access";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/permissoes")({
@@ -99,7 +99,7 @@ function Permissoes() {
                 </SelectContent>
               </Select>
               <Button variant="outline" size="sm" disabled={u.role === "master"} title={u.role === "master" ? "Adm Master vê tudo" : undefined} onClick={() => setEditing(u)}>
-                <LayoutGrid /> Abas {u.role !== "master" && (tabMap[u.id] ? `(${tabMap[u.id].length})` : "(todas)")}
+                <LayoutGrid /> Abas {u.role !== "master" && (tabMap[u.id] ? `(${tabMap[u.id].filter((x) => !x.includes("#")).length})` : "(todas)")}
               </Button>
               <Button variant="outline" size="sm" onClick={() => setInfo(u)}><Pencil /> Dados</Button>
               {!u.approved && <Button variant="neon" size="sm" onClick={() => setAccess(u, true, u.role)}>Aprovar acesso</Button>}
@@ -116,7 +116,19 @@ function Permissoes() {
 
 function TabsDialog({ user, current, onClose, onSaved }: { user: U; current: string[] | null; onClose: () => void; onSaved: () => void }) {
   const available = APP_TABS.filter((t) => roleAllows(user.role, t.only));
-  const [sel, setSel] = useState<string[]>(current ?? available.map((t) => t.to));
+  const allKeys = available.flatMap((t) => [t.to, ...(SUB_TABS[t.to] ?? []).map((x) => `${t.to}#${x.key}`)]);
+  // Old saves without sub-tabs: a page checked with no sub-tab stored means all its sub-tabs.
+  const [sel, setSel] = useState<string[]>(() => {
+    if (!current) return allKeys;
+    const out = [...current];
+    for (const t of available) if (current.includes(t.to) && !current.some((c) => c.startsWith(t.to + "#"))) out.push(...(SUB_TABS[t.to] ?? []).map((x) => `${t.to}#${x.key}`));
+    return out;
+  });
+  const toggle = (k: string, c: boolean) => setSel((s) => (c ? [...new Set([...s, k])] : s.filter((x) => x !== k)));
+  function togglePage(to: string, c: boolean) {
+    const subs = (SUB_TABS[to] ?? []).map((x) => `${to}#${x.key}`);
+    setSel((s) => (c ? [...new Set([...s, to, ...subs])] : s.filter((x) => x !== to && !subs.includes(x))));
+  }
   async function save(tabs: string[] | null) {
     const { error } = await (supabase as any).rpc("set_user_tabs", { _user: user.id, _tabs: tabs });
     if (error) return toast.error("Não foi possível salvar.");
@@ -129,20 +141,35 @@ function TabsDialog({ user, current, onClose, onSaved }: { user: U; current: str
         <DialogHeader><DialogTitle>Abas de {user.full_name || user.email}</DialogTitle></DialogHeader>
         <p className="text-sm text-muted-foreground">Marque as abas e menus que esta pessoa pode ver ({ROLES[user.role]}).</p>
         <div className="flex gap-2 text-xs">
-          <button className="text-primary hover:underline" onClick={() => setSel(available.map((t) => t.to))}>Marcar todas</button>
+          <button className="text-primary hover:underline" onClick={() => setSel(allKeys)}>Marcar todas</button>
           <button className="text-primary hover:underline" onClick={() => setSel([])}>Desmarcar todas</button>
         </div>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="max-h-[55vh] space-y-2 overflow-y-auto pr-1">
           {available.map((t) => (
-            <label key={t.to} className="flex cursor-pointer items-center gap-2 rounded-lg border border-border p-2.5 text-sm hover:bg-muted">
-              <Checkbox checked={sel.includes(t.to)} onCheckedChange={(c) => setSel((s) => (c ? [...s, t.to] : s.filter((x) => x !== t.to)))} />
-              {t.label}
-            </label>
+            <div key={t.to} className="rounded-lg border border-border p-2.5">
+              <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
+                <Checkbox checked={sel.includes(t.to)} onCheckedChange={(c) => togglePage(t.to, !!c)} />
+                {t.label}
+              </label>
+              {sel.includes(t.to) && SUB_TABS[t.to] && (
+                <div className="mt-2 grid gap-1.5 pl-6 sm:grid-cols-2">
+                  {SUB_TABS[t.to].map((x) => {
+                    const k = `${t.to}#${x.key}`;
+                    return (
+                      <label key={k} className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                        <Checkbox checked={sel.includes(k)} onCheckedChange={(c) => toggle(k, !!c)} />
+                        {x.label}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           ))}
         </div>
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="ghost" onClick={() => save(null)}>Voltar ao padrão</Button>
-          <Button variant="neon" onClick={() => save(sel)}>Salvar</Button>
+          <Button variant="neon" onClick={() => save(sel.filter((k) => !k.includes("#") || sel.includes(k.split("#")[0])))}>Salvar</Button>
         </div>
       </DialogContent>
     </Dialog>
