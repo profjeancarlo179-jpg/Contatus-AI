@@ -35,7 +35,7 @@ function ProfileLinks() {
     return (data ?? []) as unknown as Bio[];
   } });
   const [tab, setTab] = useState<"novo" | "editar" | "arquivo">("novo");
-  const editId = selected !== "new" ? selected : pages[0]?.id ?? "new";
+  const editId = selected;
   const current = pages.find(p => p.id === editId);
   const refresh = () => qc.invalidateQueries({ queryKey: ["bio-pages"] });
   async function togglePause(p: Bio & { paused?: boolean }) {
@@ -46,11 +46,18 @@ function ProfileLinks() {
   const tabs = [["novo", "Novo"], ["editar", "Editar"], ["arquivo", "Arquivo"]] as const;
   return <div className="space-y-6">
     <h1 className="text-3xl font-bold">Link do perfil</h1>
-    <div className="flex gap-2 border-b border-border pb-2">{tabs.map(([k, l]) => <Button key={k} variant={tab === k ? "secondary" : "ghost"} onClick={() => setTab(k)}>{l}</Button>)}</div>
+    <div className="flex gap-2 border-b border-border pb-2">{tabs.map(([k, l]) => <Button key={k} variant={tab === k ? "secondary" : "ghost"} onClick={() => { setTab(k); if (k === "editar") setSelected("new"); }}>{l}</Button>)}</div>
     {isLoading ? <Loader2 className="animate-spin" /> : error ? <p className="text-destructive">Não foi possível carregar suas páginas.</p> : tab === "novo" ? (
       <BioEditor key="new" onSaved={async id => { await refresh(); setSelected(id); setTab("editar"); }} onDeleted={async () => { await refresh(); }} />
-    ) : tab === "editar" ? (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página pronta ainda. Crie uma na aba Novo.</p> : <>
-      <div className="flex flex-wrap gap-2">{pages.map(p => <Button key={p.id} variant={editId === p.id ? "secondary" : "ghost"} onClick={() => setSelected(p.id ?? "new")}><Link2 />{p.name}<span className={p.published ? "text-success" : "text-muted-foreground"}>· {p.published ? "Publicada" : "Rascunho"}</span></Button>)}</div>
+    ) : tab === "editar" ? (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página pronta ainda. Crie uma na aba Novo.</p> : !current ? <>
+      <p className="text-muted-foreground">Escolha o perfil que deseja editar:</p>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{pages.map(p => <div key={p.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+        {p.photo ? <img src={p.photo} alt="" className="h-12 w-12 rounded-full object-cover" /> : <div className="grid h-12 w-12 place-items-center rounded-full bg-secondary"><Link2 /></div>}
+        <div className="min-w-0 flex-1"><p className="truncate font-semibold">{p.name}</p><p className={`text-sm ${p.published ? "text-success" : "text-muted-foreground"}`}>{p.published ? "Publicada" : "Rascunho"}</p></div>
+        <Button variant="neon" onClick={() => setSelected(p.id!)}>Editar</Button>
+      </div>)}</div>
+    </> : <>
+      <Button variant="ghost" onClick={() => setSelected("new")}><ArrowLeft /> Escolher outro perfil</Button>
       <BioEditor key={editId} initial={current} onSaved={async id => { await refresh(); setSelected(id); }} onDeleted={async () => { setSelected("new"); await refresh(); }} />
     </>) : (pages.length === 0 ? <p className="text-muted-foreground">Nenhuma página salva.</p> :
       <div className="space-y-3">{(pages as (Bio & { paused?: boolean })[]).map(p => <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
