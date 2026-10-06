@@ -44,12 +44,12 @@ type Client = {
   id: string; name: string; segment: string | null; profile_description: string | null; logo_path: string | null;
   brand_arts: string[]; brand_colors: string | null; brand_fonts: string | null;
   resp_name: string | null; resp_role: string | null; resp_email: string | null; resp_phone: string | null; resp_document: string | null;
-  socials: Record<string, string>; notes: string | null; user_id: string | null;
+  socials: Record<string, string>; notes: string | null; user_id: string | null; user_ids: string[];
 };
 
 const EMPTY: Omit<Client, "id"> = {
   name: "", segment: "", profile_description: "", logo_path: null, brand_arts: [], brand_colors: "", brand_fonts: "",
-  resp_name: "", resp_role: "", resp_email: "", resp_phone: "", resp_document: "", socials: {}, notes: "", user_id: null,
+  resp_name: "", resp_role: "", resp_email: "", resp_phone: "", resp_document: "", socials: {}, notes: "", user_id: null, user_ids: [],
 };
 
 function Clientes() {
@@ -162,12 +162,13 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
     setCreating(true);
     try {
       const r = await createFn({ data: { email, password: loginPass, full_name: d.resp_name || d.name, agency_name: d.name, role: "client" } });
-      set("user_id", r.id);
+      const ids = [...new Set([...(d.user_ids ?? []), r.id])];
+      setD((p) => ({ ...p, user_ids: ids, user_id: p.user_id ?? r.id }));
       qc.invalidateQueries({ queryKey: ["client-users"] });
       setLoginPass("");
       // Salva o cliente já com o usuário vinculado
       if (!d.name.trim()) { toast.success("Login criado. Informe o nome e clique em Salvar."); return; }
-      const payload = { ...d, user_id: r.id, updated_at: new Date().toISOString() };
+      const payload = { ...d, user_ids: ids, user_id: d.user_id ?? r.id, updated_at: new Date().toISOString() };
       const res = initial
         ? await supabase.from("clients").update(payload).eq("id", initial.id).select("id").single()
         : await supabase.from("clients").insert(payload).select("id").single();
