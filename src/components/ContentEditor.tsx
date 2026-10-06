@@ -41,6 +41,17 @@ export function ContentEditor({
   const thumbs = useMediaUrls(d.image_urls);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((p) => ({ ...p, [k]: v }));
   const multi = d.format === "carousel" || d.format === "stories";
+  const { data: clients = [] } = useQuery({
+    queryKey: ["clients", "simple"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("clients").select("id,name,socials").order("name");
+      if (error) throw error;
+      return (data ?? []) as ClientOption[];
+    },
+  });
+  const selClient = clients.find((c) => c.name === d.client_name);
+  const igHandle = (selClient?.socials?.instagram ?? "").trim().replace(/^@+/, "").replace(/\s+/g, "");
+  const previewHandle = igHandle || (d.client_name || "seu.perfil").toLowerCase().replace(/\s+/g, ".");
 
   async function onFiles(files: FileList | null) {
     if (!files?.length) return;
