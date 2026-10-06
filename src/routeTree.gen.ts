@@ -18,6 +18,8 @@ import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedCriacaoRouteImport } from './routes/_authenticated/criacao'
 import { Route as AuthenticatedCriarRouteImport } from './routes/_authenticated/criar'
+import { Route as AuthenticatedFaturaRouteImport } from './routes/_authenticated/fatura'
+import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedLinkPerfilRouteImport } from './routes/_authenticated/link-perfil'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedPermissoesRouteImport } from './routes/_authenticated/permissoes'
@@ -70,6 +72,16 @@ const AuthenticatedCriarRoute = AuthenticatedCriarRouteImport.update({
   path: '/criar',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFaturaRoute = AuthenticatedFaturaRouteImport.update({
+  id: '/fatura',
+  path: '/fatura',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedLinkPerfilRoute = AuthenticatedLinkPerfilRouteImport.update({
   id: '/link-perfil',
   path: '/link-perfil',
@@ -110,6 +122,8 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/criacao': typeof AuthenticatedCriacaoRoute
   '/criar': typeof AuthenticatedCriarRoute
+  '/fatura': typeof AuthenticatedFaturaRoute
+  '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/link-perfil': typeof AuthenticatedLinkPerfilRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/permissoes': typeof AuthenticatedPermissoesRoute
@@ -126,6 +140,8 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/criacao': typeof AuthenticatedCriacaoRoute
   '/criar': typeof AuthenticatedCriarRoute
+  '/fatura': typeof AuthenticatedFaturaRoute
+  '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/link-perfil': typeof AuthenticatedLinkPerfilRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/permissoes': typeof AuthenticatedPermissoesRoute
@@ -144,6 +160,8 @@ export interface FileRoutesById {
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/criacao': typeof AuthenticatedCriacaoRoute
   '/_authenticated/criar': typeof AuthenticatedCriarRoute
+  '/_authenticated/fatura': typeof AuthenticatedFaturaRoute
+  '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/link-perfil': typeof AuthenticatedLinkPerfilRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/permissoes': typeof AuthenticatedPermissoesRoute
@@ -162,6 +180,8 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/criacao'
     | '/criar'
+    | '/fatura'
+    | '/financeiro'
     | '/link-perfil'
     | '/painel'
     | '/permissoes'
@@ -178,6 +198,8 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/criacao'
     | '/criar'
+    | '/fatura'
+    | '/financeiro'
     | '/link-perfil'
     | '/painel'
     | '/permissoes'
@@ -195,6 +217,8 @@ export interface FileRouteTypes {
     | '/_authenticated/configuracoes'
     | '/_authenticated/criacao'
     | '/_authenticated/criar'
+    | '/_authenticated/fatura'
+    | '/_authenticated/financeiro'
     | '/_authenticated/link-perfil'
     | '/_authenticated/painel'
     | '/_authenticated/permissoes'
@@ -275,6 +299,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCriarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/fatura': {
+      id: '/_authenticated/fatura'
+      path: '/fatura'
+      fullPath: '/fatura'
+      preLoaderRoute: typeof AuthenticatedFaturaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/financeiro': {
+      id: '/_authenticated/financeiro'
+      path: '/financeiro'
+      fullPath: '/financeiro'
+      preLoaderRoute: typeof AuthenticatedFinanceiroRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/link-perfil': {
       id: '/_authenticated/link-perfil'
       path: '/link-perfil'
@@ -328,6 +366,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedCriacaoRoute: typeof AuthenticatedCriacaoRoute
   AuthenticatedCriarRoute: typeof AuthenticatedCriarRoute
+  AuthenticatedFaturaRoute: typeof AuthenticatedFaturaRoute
+  AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedLinkPerfilRoute: typeof AuthenticatedLinkPerfilRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPermissoesRoute: typeof AuthenticatedPermissoesRoute
@@ -342,6 +382,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedCriacaoRoute: AuthenticatedCriacaoRoute,
   AuthenticatedCriarRoute: AuthenticatedCriarRoute,
+  AuthenticatedFaturaRoute: AuthenticatedFaturaRoute,
+  AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedLinkPerfilRoute: AuthenticatedLinkPerfilRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPermissoesRoute: AuthenticatedPermissoesRoute,
