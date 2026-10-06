@@ -11,6 +11,8 @@ import { FeedbackCard } from "@/components/FeedbackCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ApprovalFiles } from "@/components/ApprovalFiles";
 
 export const Route = createFileRoute("/_authenticated/aprovacao")({
   head: () => ({
@@ -28,7 +30,9 @@ function Aprovacao() {
   const qc = useQueryClient();
   const { data = [] } = useQuery({ queryKey: ["contents"], queryFn: fetchContents });
   const [selectedId, setSelectedId] = useState<string | "new">("new");
+  const [tab, setTab] = useState("geral");
   const selected = data.find((c) => c.id === selectedId);
+  const open = (id: string) => { setSelectedId(id); setTab("geral"); window.scrollTo({ top: 0 }); };
 
   return (
     <div className="space-y-6">
@@ -36,6 +40,13 @@ function Aprovacao() {
         <h1 className="text-3xl font-bold">Pré-visualizar & Aprovação</h1>
         <p className="text-muted-foreground">Monte o mockup, gere o link e o cliente aprova a arte como ela ficará no Instagram.</p>
       </div>
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList>
+          <TabsTrigger value="geral">Geral</TabsTrigger>
+          <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
+        </TabsList>
+        <TabsContent value="arquivos" className="mt-6"><ApprovalFiles data={data} onOpen={open} /></TabsContent>
+        <TabsContent value="geral" className="mt-6">
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
         <aside className="glass h-fit max-h-[75vh] overflow-y-auto rounded-xl p-2">
           <button
@@ -78,6 +89,8 @@ function Aprovacao() {
           )}
         </div>
       </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
