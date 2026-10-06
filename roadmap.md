@@ -11,4 +11,4 @@
 - [x] Envio: nome/e-mail do cliente, link /aprovar/:id, prazo 3 dias com contagem regressiva
 - [x] Página cliente: Aprovar (PIN 4 dígitos) / Reprovar (motivos + texto)
 - [x] Aprovação automática após 3 dias; selo e notas do cliente em Arquivos
-- [ ] Admin Master para jean179@gmail.com e profjeancarlo179@gmail.com (papel atribuído no cadastro)
+- [x] Admin Master para jean179@gmail.com e profjeancarlo179@gmail.com (papel atribuído no cadastro)
