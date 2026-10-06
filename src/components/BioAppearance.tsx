@@ -1,8 +1,9 @@
-import { Instagram, Facebook, Youtube, Music2, MessageCircle, Globe, Mail, Phone, MapPin, ShoppingBag, Calendar, FileText, Link2, Linkedin, X, Send, Heart, Camera, type LucideIcon } from "lucide-react";
+import { Instagram, Facebook, Youtube, Music2, MessageCircle, Globe, Mail, Phone, MapPin, ShoppingBag, Calendar, FileText, Link2, Linkedin, X, Send, Heart, Camera, Upload, type LucideIcon } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BIO_THEMES, bioAppearance, type BioAppearance } from "@/lib/bio";
+import { BIO_THEMES, bioAppearance, bioIconImage, type BioAppearance } from "@/lib/bio";
 
 const ICONS: { key: string; label: string; icon: LucideIcon }[] = [
   { key: "none", label: "Sem ícone", icon: X }, { key: "instagram", label: "Instagram", icon: Instagram },
@@ -15,12 +16,15 @@ const ICONS: { key: string; label: string; icon: LucideIcon }[] = [
   { key: "telegram", label: "Telegram", icon: Send }, { key: "heart", label: "Coração", icon: Heart },
   { key: "camera", label: "Portfólio", icon: Camera }, { key: "link", label: "Link", icon: Link2 },
 ];
-export function BioLinkIcon({ name }: { name?: string }) {
+export function BioLinkIcon({ name, image }: { name?: string; image?: string }) {
+  if (image) return <img src={image} alt="" aria-hidden="true" className="h-6 w-6 shrink-0 rounded-md object-cover" />;
   const Icon = ICONS.find(i => i.key === name && i.key !== "none")?.icon;
   return Icon ? <Icon aria-hidden="true" className="h-5 w-5 shrink-0" /> : null;
 }
-export function BioIconPicker({ value, onChange, index }: { value?: string; onChange: (value: string) => void; index: number }) {
-  return <fieldset className="space-y-2"><legend className="text-xs text-muted-foreground">Ícone do link</legend><div className="flex flex-wrap gap-1.5">{ICONS.map(i => <Button key={i.key} variant={value === i.key || (!value && i.key === "none") ? "secondary" : "ghost"} size="icon" aria-label={`Ícone ${i.label} no link ${index}`} aria-pressed={value === i.key || (!value && i.key === "none")} title={i.label} onClick={() => onChange(i.key)}><i.icon /></Button>)}</div></fieldset>;
+export function BioIconPicker({ value, image, onChange, index }: { value?: string; image?: string; onChange: (value: string, image?: string) => void; index: number }) {
+  return <fieldset className="space-y-2"><legend className="text-xs text-muted-foreground">Ícone do link</legend><div className="flex flex-wrap items-center gap-1.5">{ICONS.map(i => <Button key={i.key} variant={!image && (value === i.key || (!value && i.key === "none")) ? "secondary" : "ghost"} size="icon" aria-label={`Ícone ${i.label} no link ${index}`} aria-pressed={!image && (value === i.key || (!value && i.key === "none"))} title={i.label} onClick={() => onChange(i.key, undefined)}><i.icon /></Button>)}
+    <Button variant={image ? "secondary" : "ghost"} size="icon" asChild title="Enviar ícone próprio"><label className="cursor-pointer" aria-label={`Enviar ícone próprio no link ${index}`}>{image ? <img src={image} alt="" className="h-5 w-5 rounded object-cover" /> : <Upload />}<input type="file" accept="image/*" className="hidden" onChange={async e => { const file = e.target.files?.[0]; e.target.value = ""; if (!file) return; try { onChange("custom", await bioIconImage(file)); } catch (err) { toast.error(err instanceof Error ? err.message : "Falha no ícone"); } }} /></label></Button>
+  </div>{image && <p className="text-xs text-muted-foreground">Ícone próprio em uso. Escolha outro ícone acima para substituir.</p>}</fieldset>;
 }
 export function BioAppearanceEditor({ value, onChange }: { value?: BioAppearance; onChange: (value: BioAppearance) => void }) {
   const a = bioAppearance(value);

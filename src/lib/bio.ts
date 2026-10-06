@@ -1,4 +1,4 @@
-export type BioLink = { id: string; label: string; url: string; enabled: boolean; icon?: string };
+export type BioLink = { id: string; label: string; url: string; enabled: boolean; icon?: string; iconImage?: string };
 export type BioAppearance = { background?: string; text?: string; button?: string; buttonText?: string; shape?: string; buttonStyle?: string; font?: string; socials?: Record<string, string> };
 export type Bio = { id?: string; slug: string; name: string; description: string; photo: string; links: BioLink[]; published: boolean; appearance?: BioAppearance };
 export const BIO_DEFAULTS = { background: "#101014", text: "#f4f4f6", button: "#25212f", buttonText: "#f4f4f6", shape: "rounded", buttonStyle: "solid", font: "manrope" };
@@ -33,4 +33,16 @@ export async function bioPhoto(file: File): Promise<string> {
   ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, 400, 400);
   bitmap.close();
   return canvas.toDataURL("image/jpeg", 0.85);
+}
+export async function bioIconImage(file: File): Promise<string> {
+  if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) throw new Error("Escolha uma imagem de até 5 MB");
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement("canvas");
+  canvas.width = 96; canvas.height = 96;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Não foi possível carregar o ícone");
+  const side = Math.min(bitmap.width, bitmap.height);
+  ctx.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, 96, 96);
+  bitmap.close();
+  return canvas.toDataURL("image/png");
 }
