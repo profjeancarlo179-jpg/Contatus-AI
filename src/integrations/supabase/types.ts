@@ -173,6 +173,7 @@ export type Database = {
           socials: Json
           updated_at: string
           user_id: string | null
+          user_ids: string[]
         }
         Insert: {
           brand_arts?: string[]
@@ -194,6 +195,7 @@ export type Database = {
           socials?: Json
           updated_at?: string
           user_id?: string | null
+          user_ids?: string[]
         }
         Update: {
           brand_arts?: string[]
@@ -215,6 +217,7 @@ export type Database = {
           socials?: Json
           updated_at?: string
           user_id?: string | null
+          user_ids?: string[]
         }
         Relationships: []
       }

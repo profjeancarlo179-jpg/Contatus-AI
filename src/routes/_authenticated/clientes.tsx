@@ -44,12 +44,12 @@ type Client = {
   id: string; name: string; segment: string | null; profile_description: string | null; logo_path: string | null;
   brand_arts: string[]; brand_colors: string | null; brand_fonts: string | null;
   resp_name: string | null; resp_role: string | null; resp_email: string | null; resp_phone: string | null; resp_document: string | null;
-  socials: Record<string, string>; notes: string | null; user_id: string | null;
+  socials: Record<string, string>; notes: string | null; user_id: string | null; user_ids: string[];
 };
 
 const EMPTY: Omit<Client, "id"> = {
   name: "", segment: "", profile_description: "", logo_path: null, brand_arts: [], brand_colors: "", brand_fonts: "",
-  resp_name: "", resp_role: "", resp_email: "", resp_phone: "", resp_document: "", socials: {}, notes: "", user_id: null,
+  resp_name: "", resp_role: "", resp_email: "", resp_phone: "", resp_document: "", socials: {}, notes: "", user_id: null, user_ids: [],
 };
 
 function Clientes() {
@@ -162,12 +162,13 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
     setCreating(true);
     try {
       const r = await createFn({ data: { email, password: loginPass, full_name: d.resp_name || d.name, agency_name: d.name, role: "client" } });
-      set("user_id", r.id);
+      const ids = [...new Set([...(d.user_ids ?? []), r.id])];
+      setD((p) => ({ ...p, user_ids: ids, user_id: p.user_id ?? r.id }));
       qc.invalidateQueries({ queryKey: ["client-users"] });
       setLoginPass("");
       // Salva o cliente já com o usuário vinculado
       if (!d.name.trim()) { toast.success("Login criado. Informe o nome e clique em Salvar."); return; }
-      const payload = { ...d, user_id: r.id, updated_at: new Date().toISOString() };
+      const payload = { ...d, user_ids: ids, user_id: d.user_id ?? r.id, updated_at: new Date().toISOString() };
       const res = initial
         ? await supabase.from("clients").update(payload).eq("id", initial.id).select("id").single()
         : await supabase.from("clients").insert(payload).select("id").single();
@@ -253,23 +254,39 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
       </Section>
 
       <Section title="Acesso ao app (usuário e senha)" icon={<KeyRound className="h-4 w-4 text-primary" />}>
-        <div className="space-y-1.5">
-          <Label>Usuário vinculado</Label>
-          <select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={d.user_id ?? ""} onChange={(e) => set("user_id", e.target.value || null)}>
-            <option value="">Nenhum</option>
-            {users.map((u) => <option key={u.id} value={u.id}>{(u.full_name || u.email) + (u.full_name ? ` — ${u.email}` : "")}</option>)}
-          </select>
-        </div>
-        {!d.user_id && (
-          <div className="space-y-3 rounded-lg border border-border p-4">
-            <p className="text-sm text-muted-foreground">Ou crie um login novo para este cliente:</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5"><Label>E-mail (usuário)</Label><Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder={d.resp_email ?? ""} /></div>
-              <div className="space-y-1.5"><Label>Senha (mín. 6)</Label><Input type="text" value={loginPass} onChange={(e) => setLoginPass(e.target.value)} /></div>
-            </div>
-            <Button variant="outline" disabled={creating} onClick={createLogin}>{creating && <Loader2 className="animate-spin" />} Criar login, vincular e salvar</Button>
+        <div className="space-y-2">
+          <Label>Usuários vinculados (marque um ou mais)</Label>
+          <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg border border-border p-2">
+            {users.length === 0 && <p className="p-2 text-sm text-muted-foreground">Nenhum usuário cliente cadastrado.</p>}
+            {users.map((u) => {
+              const checked = (d.user_ids ?? []).includes(u.id);
+              return (
+                <label key={u.id} className={`flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm ${checked ? "bg-primary/10" : "hover:bg-muted"}`}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(e) => {
+                      const ids = e.target.checked
+                        ? [...(d.user_ids ?? []), u.id]
+                        : (d.user_ids ?? []).filter((x) => x !== u.id);
+                      setD((p) => ({ ...p, user_ids: ids, user_id: ids[0] ?? null }));
+                    }}
+                  />
+                  <span className="truncate">{(u.full_name || u.email) + (u.full_name ? ` — ${u.email}` : "")}</span>
+                </label>
+              );
+            })}
           </div>
-        )}
+          <p className="text-xs text-muted-foreground">{(d.user_ids ?? []).length} usuário(s) vinculado(s).</p>
+        </div>
+        <div className="space-y-3 rounded-lg border border-border p-4">
+          <p className="text-sm text-muted-foreground">Ou crie um login novo para este cliente:</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5"><Label>E-mail (usuário)</Label><Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder={d.resp_email ?? ""} /></div>
+            <div className="space-y-1.5"><Label>Senha (mín. 6)</Label><Input type="text" value={loginPass} onChange={(e) => setLoginPass(e.target.value)} /></div>
+          </div>
+          <Button variant="outline" disabled={creating} onClick={createLogin}>{creating && <Loader2 className="animate-spin" />} Criar login, vincular e salvar</Button>
+        </div>
         <div>
           <Button variant="neon" size="sm" onClick={save} disabled={busy || uploading}>{busy && <Loader2 className="animate-spin" />} Salvar acesso</Button>
         </div>
