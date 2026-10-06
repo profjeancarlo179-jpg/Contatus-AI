@@ -15,6 +15,7 @@ import { Route as AuthenticatedAnaliseRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAprovacaoRouteImport } from './routes/_authenticated/aprovacao'
 import { Route as AuthenticatedArquivosRouteImport } from './routes/_authenticated/arquivos'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
+import { Route as AuthenticatedCriacaoRouteImport } from './routes/_authenticated/criacao'
 import { Route as AuthenticatedCriarRouteImport } from './routes/_authenticated/criar'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedPermissoesRouteImport } from './routes/_authenticated/permissoes'
@@ -51,6 +52,11 @@ const AuthenticatedConfiguracoesRoute =
     path: '/configuracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCriacaoRoute = AuthenticatedCriacaoRouteImport.update({
+  id: '/criacao',
+  path: '/criacao',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCriarRoute = AuthenticatedCriarRouteImport.update({
   id: '/criar',
   path: '/criar',
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/aprovacao': typeof AuthenticatedAprovacaoRoute
   '/arquivos': typeof AuthenticatedArquivosRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/criacao': typeof AuthenticatedCriacaoRoute
   '/criar': typeof AuthenticatedCriarRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/permissoes': typeof AuthenticatedPermissoesRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/aprovacao': typeof AuthenticatedAprovacaoRoute
   '/arquivos': typeof AuthenticatedArquivosRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/criacao': typeof AuthenticatedCriacaoRoute
   '/criar': typeof AuthenticatedCriarRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/permissoes': typeof AuthenticatedPermissoesRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/_authenticated/aprovacao': typeof AuthenticatedAprovacaoRoute
   '/_authenticated/arquivos': typeof AuthenticatedArquivosRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/_authenticated/criacao': typeof AuthenticatedCriacaoRoute
   '/_authenticated/criar': typeof AuthenticatedCriarRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/permissoes': typeof AuthenticatedPermissoesRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/aprovacao'
     | '/arquivos'
     | '/configuracoes'
+    | '/criacao'
     | '/criar'
     | '/painel'
     | '/permissoes'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/aprovacao'
     | '/arquivos'
     | '/configuracoes'
+    | '/criacao'
     | '/criar'
     | '/painel'
     | '/permissoes'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/_authenticated/aprovacao'
     | '/_authenticated/arquivos'
     | '/_authenticated/configuracoes'
+    | '/_authenticated/criacao'
     | '/_authenticated/criar'
     | '/_authenticated/painel'
     | '/_authenticated/permissoes'
@@ -205,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/criacao': {
+      id: '/_authenticated/criacao'
+      path: '/criacao'
+      fullPath: '/criacao'
+      preLoaderRoute: typeof AuthenticatedCriacaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/criar': {
       id: '/_authenticated/criar'
       path: '/criar'
@@ -248,6 +267,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAprovacaoRoute: typeof AuthenticatedAprovacaoRoute
   AuthenticatedArquivosRoute: typeof AuthenticatedArquivosRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
+  AuthenticatedCriacaoRoute: typeof AuthenticatedCriacaoRoute
   AuthenticatedCriarRoute: typeof AuthenticatedCriarRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPermissoesRoute: typeof AuthenticatedPermissoesRoute
@@ -259,6 +279,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAprovacaoRoute: AuthenticatedAprovacaoRoute,
   AuthenticatedArquivosRoute: AuthenticatedArquivosRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
+  AuthenticatedCriacaoRoute: AuthenticatedCriacaoRoute,
   AuthenticatedCriarRoute: AuthenticatedCriarRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPermissoesRoute: AuthenticatedPermissoesRoute,
