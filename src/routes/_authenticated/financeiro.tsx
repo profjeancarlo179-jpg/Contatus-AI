@@ -181,7 +181,7 @@ function CentralFaturas() {
         {filtered.map((i) => (
           <InvoiceCard key={i.id} i={i} clientName={nameOf(i.client_id)} refLabel={refs[i.id]} actions={
             <>
-              <InvoicePreviewButton i={i} clientName={nameOf(i.client_id)} clientDoc={docOf(i.client_id)} />
+              <InvoicePreviewButton i={i} clientName={nameOf(i.client_id)} clientDoc={docOf(i.client_id)} refLabel={refs[i.id]} />
               <Button size="sm" variant="outline" onClick={() => toggle(i)}>{i.released ? <><EyeOff /> Esconder</> : <><Eye /> Liberar</>}</Button>
               <Button size="sm" variant="ghost" onClick={() => remove(i)}><Trash2 /></Button>
             </>
@@ -332,7 +332,7 @@ function GerarFatura() {
         {invoices.map((i) => (
           <InvoiceCard key={i.id} i={i} clientName={nameOf(i.client_id)} refLabel={refs[i.id]} actions={
             <>
-              <InvoicePreviewButton i={i} clientName={nameOf(i.client_id)} clientDoc={docOf(i.client_id)} />
+              <InvoicePreviewButton i={i} clientName={nameOf(i.client_id)} clientDoc={docOf(i.client_id)} refLabel={refs[i.id]} />
               <Select value={i.status} onValueChange={(v) => setStatus(i, v)}>
                 <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
                 <SelectContent>
