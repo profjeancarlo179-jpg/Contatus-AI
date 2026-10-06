@@ -18,7 +18,7 @@ export function BioPreview({ bio, interactive = false }: { bio: Pick<Bio, "name"
     <div className="mt-8 space-y-3">
       {bio.links.filter(l => l.enabled).map(l => {
         const href = safeBioUrl(l.url);
-        const content = <><span className="flex min-w-0 items-center gap-3"><BioLinkIcon name={l.icon} /><span className="min-w-0 break-words">{l.label || "Novo link"}</span></span><ArrowUpRight className="shrink-0" /></>;
+        const content = <><span className="flex min-w-0 items-center gap-3"><BioLinkIcon name={l.icon} image={l.iconImage} /><span className="min-w-0 break-words">{l.label || "Novo link"}</span></span><ArrowUpRight className="shrink-0" /></>;
         return <Button key={l.id} variant="outline" asChild={interactive && !!href} className={`bio-button bio-shape-${a.shape} bio-style-${a.buttonStyle} min-h-14 w-full justify-between gap-4 whitespace-normal px-5 py-3 text-left`}>
           {interactive && href ? <a href={href} target="_blank" rel="noopener noreferrer">{content}</a> : <span className="flex w-full items-center justify-between gap-4">{content}</span>}
         </Button>;
