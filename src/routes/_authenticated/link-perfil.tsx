@@ -37,6 +37,12 @@ function ProfileLinks() {
     return (data ?? []) as unknown as Bio[];
   } });
   const [tab, setTab] = useState<"novo" | "editar" | "arquivo" | "redirect">("novo");
+  const { data: clients = [] } = useQuery({ queryKey: ["bio-clients"], queryFn: async () => {
+    const { data, error } = await supabase.rpc("list_clients");
+    if (error) return [] as { id: string; full_name: string | null; agency_name: string | null }[];
+    return data;
+  } });
+  const clientLabel = (id?: string | null) => { const c = clients.find(x => x.id === id); return c ? (c.full_name || c.agency_name || "Cliente") : null; };
   const editId = selected;
   const current = pages.find(p => p.id === editId);
   const refresh = () => qc.invalidateQueries({ queryKey: ["bio-pages"] });
@@ -57,7 +63,7 @@ function ProfileLinks() {
       <p className="text-muted-foreground">Escolha o perfil que deseja editar:</p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{pages.map(p => <div key={p.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
         {p.photo ? <img src={p.photo} alt="" className="h-12 w-12 rounded-full object-cover" /> : <div className="grid h-12 w-12 place-items-center rounded-full bg-secondary"><Link2 /></div>}
-        <div className="min-w-0 flex-1"><p className="truncate font-semibold">{p.name}</p><p className={`text-sm ${p.published ? "text-success" : "text-muted-foreground"}`}>{p.published ? "Publicada" : "Rascunho"}</p></div>
+        <div className="min-w-0 flex-1"><p className="truncate font-semibold">{p.name}</p>{clientLabel(p.clientId) && <p className="truncate text-xs text-muted-foreground">{clientLabel(p.clientId)}</p>}<p className={`text-sm ${p.published ? "text-success" : "text-muted-foreground"}`}>{p.published ? "Publicada" : "Rascunho"}</p></div>
         <Button variant="neon" onClick={() => setSelected(p.id!)}>Editar</Button>
       </div>)}</div>
     </> : <>
