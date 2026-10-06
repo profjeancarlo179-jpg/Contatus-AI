@@ -114,6 +114,9 @@ function CentralFaturas() {
     if (status !== "todas" && i.status !== status) return false;
     if (view === "liberadas" && !i.released) return false;
     if (view === "rascunho" && i.released) return false;
+    if (month && invoiceDate(i).slice(0, 7) !== month) return false;
+    if (from && invoiceDate(i) < from) return false;
+    if (to && invoiceDate(i) > to) return false;
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       const hay = `${i.description} ${nameOf(i.client_id)} ${i.due_date ?? ""} ${i.notes ?? ""}`.toLowerCase();
