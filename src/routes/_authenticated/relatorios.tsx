@@ -361,7 +361,7 @@ function AdmView() {
           <Label>Número total geral da campanha</Label>
           <div className="flex gap-2">
             <Input inputMode="numeric" value={total} onChange={(e) => setTotal(e.target.value.replace(/\D/g, ""))} placeholder="Ex: 25000" />
-            <Button type="button" variant="secondary" onClick={() => { const t = Number(total); if (!t) return toast.error("Insira um total válido"); setMetrics(distribute(t)); }}>Distribuir tudo</Button>
+            <Button type="button" variant="secondary" onClick={() => { const t = Number(total); if (!t) return toast.error("Insira um total válido"); setMetrics(distribute(t)); setX({ ages: genAges() }); toast.success("Métricas e faixa etária (60% homens / 40% mulheres) geradas"); }}>Distribuir tudo</Button>
           </div>
           <p className="text-xs text-muted-foreground">Ao alterar um campo, o restante do total é redistribuído entre os outros.</p>
         </div>
@@ -440,10 +440,11 @@ function ExtraFields({ extra, setX }: { extra: ReportExtra; setX: (p: Partial<Re
         </div>
       </div>
       <div className="text-xs font-semibold text-muted-foreground">6. Público</div>
-      <PctList label="Principais cidades" placeholder="Cáceres, MT" rows={extra.cities ?? []} onChange={(cities) => setX({ cities })} />
+      <CitySearch rows={extra.cities ?? []} onChange={(cities) => setX({ cities })} />
+      <PctList label="Cidades escolhidas (ajuste o %)" placeholder="Cáceres, MT" rows={extra.cities ?? []} onChange={(cities) => setX({ cities })} />
       <PctList label="Principais países" placeholder="Brasil" rows={extra.countries ?? []} onChange={(countries) => setX({ countries })} />
       <div className="space-y-1.5">
-        <Label className="text-xs">Faixa etária e gênero (%)</Label>
+        <div className="flex items-center justify-between"><Label className="text-xs">Faixa etária e gênero (%) — 60% homens / 40% mulheres</Label><Button type="button" size="sm" variant="ghost" onClick={() => setX({ ages: genAges() })}>Gerar</Button></div>
         <div className="grid grid-cols-[60px_1fr_1fr] gap-1 text-[11px] text-muted-foreground"><span>Idade</span><span>Mulheres</span><span>Homens</span></div>
         {(extra.ages ?? []).map((a, i) => (
           <div key={a.range} className="grid grid-cols-[60px_1fr_1fr] items-center gap-1">
@@ -453,6 +454,67 @@ function ExtraFields({ extra, setX }: { extra: ReportExtra; setX: (p: Partial<Re
         ))}
       </div>
       <div className="space-y-1"><Label className="text-xs">Gerado por (usuário)</Label><Input value={extra.generatedBy ?? ""} placeholder="JEAN CARLO" onChange={(e) => setX({ generatedBy: e.target.value })} /></div>
+    </div>
+  );
+}
+
+const AGE_W = [0.06, 0.28, 0.38, 0.2, 0.06, 0.02];
+function genAges() {
+  const r = (total: number) => {
+    const ws = AGE_W.map((w) => w * (1 + (Math.random() * 0.3 - 0.15)));
+    const sum = ws.reduce((a, b) => a + b, 0);
+    const out = ws.map((w) => Math.round((total * w) / sum));
+    out[2] += total - out.reduce((a, b) => a + b, 0);
+    return out;
+  };
+  const m = r(60), f = r(40);
+  return ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"].map((range, i) => ({ range, f: String(f[i]), m: String(m[i]) }));
+}
+
+type City = { n: string; uf: string };
+let cityCache: Promise<City[]> | null = null;
+function loadCities() {
+  cityCache ??= fetch("https://servicodados.ibge.gov.br/api/v1/localidades/municipios?view=nivelado")
+    .then((r) => r.json())
+    .then((d: Record<string, string>[]) => d.map((c) => ({ n: c["municipio-nome"], uf: c["UF-sigla"] })))
+    .catch(() => { cityCache = null; return []; });
+  return cityCache;
+}
+const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const AUTO_PCT = [48.4, 8.6, 3.9, 2.3, 2.3, 2.3, 1.6, 1.6, 1.6, 1.6];
+
+function CitySearch({ rows, onChange }: { rows: PctRow[]; onChange: (r: PctRow[]) => void }) {
+  const [q, setQ] = useState("");
+  const [all, setAll] = useState<City[]>([]);
+  const [loading, setLoading] = useState(false);
+  const chosen = rows.filter((r) => r.name.trim());
+  const base = chosen[0]?.name.split(", ")[1];
+  async function ensure() { if (all.length) return; setLoading(true); setAll(await loadCities()); setLoading(false); }
+  const has = (c: City) => chosen.some((r) => r.name === `${c.n}, ${c.uf}`);
+  const list = q.trim().length >= 2
+    ? all.filter((c) => norm(c.n).includes(norm(q.trim())) && !has(c)).slice(0, 8)
+    : base ? all.filter((c) => c.uf === base && !has(c)).slice(0, 12) : [];
+  function add(c: City) {
+    const next = [...chosen, { name: `${c.n}, ${c.uf}`, pct: String(AUTO_PCT[chosen.length] ?? 1).replace(".", ",") }];
+    onChange(next); setQ("");
+  }
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">Buscar cidades</Label>
+      <Input value={q} onFocus={ensure} onChange={(e) => { setQ(e.target.value); ensure(); }} placeholder="Digite o nome da cidade (ex: Cáceres)" />
+      {loading && <p className="text-xs text-muted-foreground"><Loader2 className="inline h-3 w-3 animate-spin" /> Carregando cidades…</p>}
+      {list.length > 0 && (
+        <div>
+          {!q.trim() && base && <p className="mb-1 text-[11px] text-muted-foreground">Cidades próximas ({base}) — clique para adicionar:</p>}
+          <div className="flex flex-wrap gap-1.5">
+            {list.map((c) => (
+              <button key={c.n + c.uf} type="button" onClick={() => add(c)} className="rounded-full border border-border px-2.5 py-0.5 text-xs hover:border-primary hover:text-primary">
+                + {c.n}, {c.uf}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
