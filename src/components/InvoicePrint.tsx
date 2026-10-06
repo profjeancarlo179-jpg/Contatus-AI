@@ -6,7 +6,7 @@ import type { Invoice } from "@/components/InvoiceCard";
 
 export type PaymentSettings = {
   company_name: string; address: string; phone: string; whatsapp: string; email: string; website: string;
-  logo: string | null; instructions: string; pix_code: string; footer: string;
+  logo: string | null; pix_qr?: string | null; instructions: string; pix_code: string; footer: string;
 };
 
 export function usePaymentSettings() {
@@ -32,7 +32,8 @@ function useQr(text: string) {
 
 /** Printable invoice (white paper layout). Hidden on screen, shown only when printing. */
 export function InvoicePrint({ i, s, clientName, clientDoc }: { i: Invoice; s: PaymentSettings | null | undefined; clientName: string; clientDoc?: string }) {
-  const qr = useQr(s?.pix_code ?? "");
+  const gen = useQr(s?.pix_qr ? "" : (s?.pix_code ?? ""));
+  const qr = s?.pix_qr || gen;
   const num = invoiceNumber(i);
   const contact = [s?.phone && `Tel: ${s.phone}`, s?.whatsapp && `WhatsApp: ${s.whatsapp}`, s?.email && `Email: ${s.email}`].filter(Boolean).join(" | ");
   const Logo = ({ size }: { size: number }) => s?.logo ? <img src={s.logo} alt="" style={{ width: size, height: size, objectFit: "contain" }} /> : null;

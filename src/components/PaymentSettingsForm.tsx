@@ -8,13 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { usePaymentSettings, type PaymentSettings } from "@/components/InvoicePrint";
 
-const EMPTY: PaymentSettings = { company_name: "", address: "", phone: "", whatsapp: "", email: "", website: "", logo: null, instructions: "", pix_code: "", footer: "" };
+const EMPTY: PaymentSettings = { company_name: "", address: "", phone: "", whatsapp: "", email: "", website: "", logo: null, pix_qr: null, instructions: "", pix_code: "", footer: "" };
 
-function resizeLogo(file: File): Promise<string> {
+function resizeLogo(file: File, max = 300): Promise<string> {
   return new Promise((res, rej) => {
     const img = new Image();
     img.onload = () => {
-      const k = Math.min(1, 300 / Math.max(img.width, img.height));
+      const k = Math.min(1, max / Math.max(img.width, img.height));
       const c = document.createElement("canvas"); c.width = img.width * k; c.height = img.height * k;
       c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
       res(c.toDataURL("image/png"));
@@ -64,6 +64,14 @@ export function PaymentSettingsForm() {
       </div>
       <div className="space-y-1.5"><Label>Instruções de pagamento</Label><Textarea rows={4} value={f.instructions} onChange={set("instructions")} /></div>
       <div className="space-y-1.5"><Label>PIX copia e cola (gera o QR Code)</Label><Textarea rows={2} value={f.pix_code} onChange={set("pix_code")} /></div>
+      <div className="space-y-1.5">
+        <Label>Imagem do QR Code PIX (opcional — se enviar, ela é usada no lugar do QR gerado)</Label>
+        <div className="flex items-center gap-4">
+          {f.pix_qr ? <img src={f.pix_qr} alt="QR Code" className="h-20 w-20 rounded bg-foreground p-1 object-contain" /> : <div className="grid h-20 w-20 place-items-center rounded bg-muted text-xs text-muted-foreground">QR</div>}
+          <Input type="file" accept="image/*" className="max-w-xs" onChange={async (e) => { const file = e.target.files?.[0]; if (file) setF({ ...f, pix_qr: await resizeLogo(file, 600) }); }} />
+          {f.pix_qr && <Button variant="ghost" size="sm" onClick={() => setF({ ...f, pix_qr: null })}>Remover</Button>}
+        </div>
+      </div>
       {field("footer", "Rodapé da fatura")}
       <Button onClick={save} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
     </div>
