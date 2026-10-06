@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { METRICS, GROUPS, mByKey, getExtra, emptyExtra, num, type ReportExtra, type PctRow } from "@/lib/report-metrics";
+import { ReportPreviewButton } from "@/components/ReportPreview";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
@@ -25,29 +27,10 @@ export const Route = createFileRoute("/_authenticated/relatorios")({
   component: Relatorios,
 });
 
-const METRICS: { key: string; label: string; suffix?: string; color?: string; short?: string; w?: number }[] = [
-  { key: "alcanceFb", label: "Alcance do Facebook", short: "FB Ads", color: "#1877f2", w: 0.10 },
-  { key: "alcanceIg", label: "Alcance do Instagram", short: "IG Ads", color: "#e1306c", w: 0.40 },
-  { key: "maps", label: "Buscas no Google Maps", short: "Google Maps", color: "#ea4335", w: 0.15 },
-  { key: "visualizacoes", label: "Visualizações totais", short: "Totais", color: "#2cb574", w: 0.12 },
-  { key: "visualizadores", label: "Visualizadores únicos", short: "Únicos", color: "#4c5fd7", w: 0.09 },
-  { key: "cliques", label: "Cliques no link", short: "Cliques link", color: "#f4b400", w: 0.03 },
-  { key: "linktree", label: "Visitas aos Contatos", short: "Contatos", color: "#39e587", w: 0.025 },
-  { key: "visitas", label: "Visitas ao perfil", short: "Visitas", color: "#1098ad", w: 0.04 },
-  { key: "seguidores", label: "Novos seguidores", short: "Seguidores", color: "#6f42c1", w: 0.03 },
-  { key: "interacoes", label: "Interações com o conteúdo", short: "Interações", color: "#fd7e14", w: 0.015 },
-];
-const GROUPS = [
-  { title: "1. Canais de alcance e descoberta", keys: ["alcanceFb", "alcanceIg", "maps"] },
-  { title: "2. Volume de visualizações", keys: ["visualizacoes", "visualizadores"] },
-  { title: "3. Cliques e direcionamento", keys: ["cliques", "linktree"] },
-  { title: "4. Engajamento e crescimento", keys: ["visitas", "seguidores", "interacoes"] },
-];
 const LEGACY: Record<string, string> = { followers: "Seguidores", new_followers: "Novos seguidores", reach: "Alcance", impressions: "Impressões", engagement: "Engajamento", likes: "Curtidas", comments: "Comentários", shares: "Compartilhamentos", saves: "Salvamentos", profile_visits: "Visitas ao perfil", link_clicks: "Cliques no link", posts: "Publicações" };
-const mByKey = Object.fromEntries(METRICS.map((m) => [m.key, m]));
 
 function distribute(total: number): Record<string, string> {
-  const ws = METRICS.map((m) => m.w! * (1 + (Math.random() * 0.4 - 0.2)));
+  const ws = METRICS.map((m) => m.w * (1 + (Math.random() * 0.4 - 0.2)));
   const sum = ws.reduce((a, b) => a + b, 0);
   let rest = total; const out: Record<string, string> = {};
   METRICS.forEach((m, i) => {
@@ -61,17 +44,17 @@ function distribute(total: number): Record<string, string> {
 function redistribute(total: number, key: string, value: number, cur: Record<string, string>): Record<string, string> {
   const v = Math.min(Math.max(0, value), total);
   const others = METRICS.filter((m) => m.key !== key);
-  const wsum = others.reduce((a, m) => a + m.w!, 0);
+  const wsum = others.reduce((a, m) => a + m.w, 0);
   let rest = total - v; const out: Record<string, string> = { ...cur, [key]: String(v) };
   others.forEach((m, i) => {
-    const n = i === others.length - 1 ? rest : Math.floor(((total - v) * m.w!) / wsum);
+    const n = i === others.length - 1 ? rest : Math.floor(((total - v) * m.w) / wsum);
     if (i < others.length - 1) rest -= n;
     out[m.key] = String(Math.max(0, n));
   });
   return out;
 }
 
-function GroupCharts({ metrics }: { metrics: Record<string, number | string> }) {
+function GroupCharts({ metrics }: { metrics: Record<string, unknown> }) {
   const groups = GROUPS.filter((g) => g.keys.some((k) => Number(metrics[k]) > 0));
   if (!groups.length) return null;
   return (
@@ -99,7 +82,7 @@ function GroupCharts({ metrics }: { metrics: Record<string, number | string> }) 
 
 type Report = {
   id: string; client_id: string; title: string; period: string | null; network: string;
-  metrics: Record<string, number | string>; notes: string | null; released: boolean; created_at: string;
+  metrics: Record<string, unknown>; notes: string | null; released: boolean; created_at: string;
 };
 type Client = { id: string; email: string | null; full_name: string | null; agency_name: string | null };
 
