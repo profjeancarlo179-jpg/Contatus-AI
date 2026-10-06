@@ -160,7 +160,7 @@ export function ContentEditor({
         </Button>
       </div>
       <div className="lg:sticky lg:top-36 lg:self-start">
-        <InstagramPreview format={d.format} media={d.image_urls} caption={d.caption} hashtags={d.hashtags} audio={d.audio} location={d.location} handle={(d.client_name || "seu.perfil").toLowerCase().replace(/\s+/g, ".")} />
+        <InstagramPreview format={d.format} media={d.image_urls} caption={d.caption} hashtags={d.hashtags} audio={d.audio} location={d.location} handle={previewHandle} />
       </div>
     </div>
   );
