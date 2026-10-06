@@ -164,8 +164,16 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
       const r = await createFn({ data: { email, password: loginPass, full_name: d.resp_name || d.name, agency_name: d.name, role: "client" } });
       set("user_id", r.id);
       qc.invalidateQueries({ queryKey: ["client-users"] });
-      toast.success("Login criado e vinculado. Clique em Salvar.");
       setLoginPass("");
+      // Salva o cliente já com o usuário vinculado
+      if (!d.name.trim()) { toast.success("Login criado. Informe o nome e clique em Salvar."); return; }
+      const payload = { ...d, user_id: r.id, updated_at: new Date().toISOString() };
+      const res = initial
+        ? await supabase.from("clients").update(payload).eq("id", initial.id).select("id").single()
+        : await supabase.from("clients").insert(payload).select("id").single();
+      if (res.error) return toast.error(res.error.message);
+      toast.success("Login criado, vinculado e cliente salvo");
+      onSaved(res.data.id);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao criar login");
     } finally { setCreating(false); }
@@ -259,9 +267,12 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
               <div className="space-y-1.5"><Label>E-mail (usuário)</Label><Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder={d.resp_email ?? ""} /></div>
               <div className="space-y-1.5"><Label>Senha (mín. 6)</Label><Input type="text" value={loginPass} onChange={(e) => setLoginPass(e.target.value)} /></div>
             </div>
-            <Button variant="outline" disabled={creating} onClick={createLogin}>{creating && <Loader2 className="animate-spin" />} Criar login e vincular</Button>
+            <Button variant="outline" disabled={creating} onClick={createLogin}>{creating && <Loader2 className="animate-spin" />} Criar login, vincular e salvar</Button>
           </div>
         )}
+        <div>
+          <Button variant="neon" size="sm" onClick={save} disabled={busy || uploading}>{busy && <Loader2 className="animate-spin" />} Salvar acesso</Button>
+        </div>
       </Section>
 
       <Section title="Redes sociais">
