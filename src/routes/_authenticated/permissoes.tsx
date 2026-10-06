@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { LayoutGrid, Pencil, UserPlus, PauseCircle } from "lucide-react";
+import { LayoutGrid, Pencil, UserPlus, PauseCircle, IdCard } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useServerFn } from "@tanstack/react-start";
@@ -48,7 +48,7 @@ function Permissoes() {
     },
   });
   const [editing, setEditing] = useState<U | null>(null);
-  const [tab, setTab] = useState<"editar" | "novo" | "pausar">("editar");
+  const [tab, setTab] = useState<"editar" | "novo" | "pausar" | "perfil">("editar");
   const [info, setInfo] = useState<U | null>(null);
   async function setPaused(u: U, paused: boolean) {
     const { error } = await (supabase as any).rpc("set_user_paused", { _user: u.id, _paused: paused });
@@ -75,12 +75,13 @@ function Permissoes() {
         <p className="text-muted-foreground">Aprove cadastros e defina o perfil de cada pessoa. {pending > 0 && <span className="text-warning">{pending} aguardando.</span>}</p>
       </div>
       <div className="flex flex-wrap gap-2">
-        {([["editar", "Editar", Pencil], ["novo", "Novo", UserPlus], ["pausar", "Pausar e bloquear", PauseCircle]] as const).map(([k, l, I]) => (
+        {([["editar", "Editar", Pencil], ["novo", "Novo", UserPlus], ["pausar", "Pausar e bloquear", PauseCircle], ["perfil", "Perfil", IdCard]] as const).map(([k, l, I]) => (
           <Button key={k} variant={tab === k ? "neon" : "outline"} size="sm" onClick={() => setTab(k)}><I /> {l}</Button>
         ))}
       </div>
       {tab === "novo" && <NewUser onDone={() => { qc.invalidateQueries({ queryKey: ["users"] }); setTab("editar"); }} />}
       {tab === "pausar" && <PauseList users={data} onPause={setPaused} onBlock={(u, b) => setAccess(u, !b, u.role)} />}
+      {tab === "perfil" && <ProfileList users={data} tabMap={tabMap} />}
       {tab === "editar" && <div className="glass overflow-hidden rounded-xl">
         <ul className="divide-y divide-border">
           {data.map((u) => (
