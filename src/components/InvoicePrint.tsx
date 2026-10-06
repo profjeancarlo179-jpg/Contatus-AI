@@ -49,7 +49,7 @@ export function printInvoicePaper(source: HTMLElement | null) {
 }
 
 /** Printable invoice (white paper layout). Hidden on screen, shown only when printing. */
-export function InvoicePrint({ i, s, clientName, clientDoc }: { i: Invoice; s: PaymentSettings | null | undefined; clientName: string; clientDoc?: string }) {
+export function InvoicePrint({ i, s, clientName, clientDoc, refLabel }: { i: Invoice; s: PaymentSettings | null | undefined; clientName: string; clientDoc?: string; refLabel?: string }) {
   const gen = useQr(s?.pix_qr ? "" : (s?.pix_code ?? ""));
   const qr = s?.pix_qr || gen;
   const num = invoiceNumber(i);
@@ -70,7 +70,7 @@ export function InvoicePrint({ i, s, clientName, clientDoc }: { i: Invoice; s: P
         <div className="inv-card inv-title"><b>FATURA:</b> <span>Nº {num} — Via Única</span>{i.status === "paga" && <strong className="inv-paid">PAGO {d(i.paid_at)}</strong>}</div>
         <div className="inv-card inv-row">
           <div><b>Cliente:</b> {clientName}</div>
-          <div><b>Data:</b> {d(i.created_at)}</div>
+          <div><b>Referência:</b> {refLabel || d(i.created_at)}</div>
           <div><b>Vencimento:</b> {d(i.due_date)}</div>
           <div><b>Valor Total:</b> {brl(i.amount)}</div>
         </div>
@@ -93,7 +93,7 @@ export function InvoicePrint({ i, s, clientName, clientDoc }: { i: Invoice; s: P
         <div className="inv-grid">
           <div className="inv-cell" style={{ gridColumn: "span 2" }}><label>Beneficiário:</label> {s?.company_name}<small>{s?.address}</small></div>
           <div className="inv-cell right"><label>Data do Vencimento:</label> {d(i.due_date)}</div>
-          <div className="inv-cell"><label>Emissão:</label> {d(i.created_at)}</div>
+          <div className="inv-cell"><label>Referência:</label> {refLabel || d(i.created_at)}</div>
           <div className="inv-cell"><label>Nº Documento:</label> {num}</div>
           <div className="inv-cell right"><label>Valor:</label> <b>{brl(i.amount)}</b></div>
           <div className="inv-cell" style={{ gridColumn: "span 2" }}><label>Pagador:</label> {clientName}</div>
