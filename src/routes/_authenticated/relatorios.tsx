@@ -100,9 +100,11 @@ function Relatorios() {
         <TabsList>
           {staff && sub.can("dashboard") && <TabsTrigger value="dashboard">Dashboard</TabsTrigger>}
           {sub.can("cliente") && <TabsTrigger value="cliente">Cliente</TabsTrigger>}
+          {staff && sub.can("arquivos") && <TabsTrigger value="arquivos">Arquivos</TabsTrigger>}
           {staff && sub.can("adm") && <TabsTrigger value="adm">Adm</TabsTrigger>}
         </TabsList>
         {staff && <TabsContent value="dashboard" className="mt-6"><DashboardView /></TabsContent>}
+        {staff && <TabsContent value="arquivos" className="mt-6"><DashboardView archived /></TabsContent>}
         <TabsContent value="cliente" className="mt-6"><ClientView /></TabsContent>
         {staff && <TabsContent value="adm" className="mt-6"><AdmView /></TabsContent>}
       </Tabs>
@@ -395,21 +397,23 @@ function AdmView() {
   );
 }
 
-function DashboardView() {
+function DashboardView({ archived = false }: { archived?: boolean }) {
   const qc = useQueryClient();
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: async () => ((await supabase.rpc("list_clients")).data ?? []) as Client[],
   });
-  const { data: reports = [] } = useQuery({
+  const { data: allReports = [] } = useQuery({
     queryKey: ["reports", "all"],
     queryFn: async () => ((await supabase.from("reports").select("*").order("created_at", { ascending: false })).data ?? []) as unknown as Report[],
   });
+  const reports = allReports.filter((r) => r.released === archived);
   const nameOf = (id: string) => { const c = clients.find((x) => x.id === id); return c ? c.full_name || c.email || "" : ""; };
 
   async function toggle(r: Report) {
     const { error } = await supabase.from("reports").update({ released: !r.released, updated_at: new Date().toISOString() }).eq("id", r.id);
     if (error) return toast.error(error.message);
+    toast.success(r.released ? "Relatório voltou para o Dashboard" : "Liberado para o cliente e movido para Arquivos");
     qc.invalidateQueries({ queryKey: ["reports"] });
   }
   async function remove(r: Report) {
@@ -426,7 +430,7 @@ function DashboardView() {
   }
   const groups = [...byClient.entries()].sort((a, b) => nameOf(a[0]).localeCompare(nameOf(b[0]), "pt-BR"));
 
-  if (reports.length === 0) return <div className="glass rounded-xl p-10 text-center text-muted-foreground">Nenhum relatório criado. Gere o primeiro na aba Adm.</div>;
+  if (reports.length === 0) return <div className="glass rounded-xl p-10 text-center text-muted-foreground">{archived ? "Nenhum relatório liberado ainda." : "Nenhum relatório em rascunho. Gere um na aba Adm."}</div>;
 
   return (
     <div className="space-y-8">
