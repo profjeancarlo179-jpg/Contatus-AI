@@ -1,0 +1,1 @@
+ALTER TABLE public.payment_settings ADD COLUMN IF NOT EXISTS pix_qr text;
