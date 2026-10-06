@@ -100,6 +100,11 @@ function AppLayout() {
         ) : (
           <div className="glass mx-auto max-w-md rounded-2xl p-8 text-center">
             <Clock className="mx-auto h-10 w-10 text-warning" />
+            {access?.paused ? (<>
+              <h1 className="mt-4 text-2xl font-semibold">Acesso pausado</h1>
+              <p className="mt-2 text-sm text-muted-foreground">Seu acesso está temporariamente pausado. Fale com o Adm Master.</p>
+            </>) : (<></>)}
+            {!access?.paused && <></>}
             <h1 className="mt-4 text-2xl font-semibold">Aguardando aprovação</h1>
             <p className="mt-2 text-sm text-muted-foreground">Seu cadastro foi recebido. Um Adm Master precisa liberar seu acesso.</p>
           </div>
