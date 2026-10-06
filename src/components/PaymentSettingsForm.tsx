@@ -49,30 +49,44 @@ export function PaymentSettingsForm() {
         <h2 className="text-xl font-semibold">Configurações de pagamento</h2>
         <p className="text-sm text-muted-foreground">Esses dados aparecem na fatura que o cliente imprime.</p>
       </div>
-      <div className="flex items-center gap-4">
-        {f.logo ? <img src={f.logo} alt="Logo" className="h-16 w-16 rounded bg-foreground/90 object-contain p-1" /> : <div className="grid h-16 w-16 place-items-center rounded bg-muted text-xs text-muted-foreground">Logo</div>}
-        <Input type="file" accept="image/*" className="max-w-xs" onChange={async (e) => { const file = e.target.files?.[0]; if (file) setF({ ...f, logo: await resizeLogo(file) }); }} />
-        {f.logo && <Button variant="ghost" size="sm" onClick={() => setF({ ...f, logo: null })}>Remover</Button>}
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {field("company_name", "Nome da empresa")}
-        {field("address", "Endereço")}
-        {field("phone", "Telefone")}
-        {field("whatsapp", "WhatsApp")}
-        {field("email", "E-mail")}
-        {field("website", "Site / rede social")}
-      </div>
-      <div className="space-y-1.5"><Label>Instruções de pagamento</Label><Textarea rows={4} value={f.instructions} onChange={set("instructions")} /></div>
-      <div className="space-y-1.5"><Label>PIX copia e cola (gera o QR Code)</Label><Textarea rows={2} value={f.pix_code} onChange={set("pix_code")} /></div>
-      <div className="space-y-1.5">
-        <Label>Imagem do QR Code PIX (opcional — se enviar, ela é usada no lugar do QR gerado)</Label>
+      <section className="space-y-4 rounded-lg border border-border/60 p-4">
+        <h3 className="font-semibold">1. Dados da empresa</h3>
         <div className="flex items-center gap-4">
-          {f.pix_qr ? <img src={f.pix_qr} alt="QR Code" className="h-20 w-20 rounded bg-foreground p-1 object-contain" /> : <div className="grid h-20 w-20 place-items-center rounded bg-muted text-xs text-muted-foreground">QR</div>}
-          <Input type="file" accept="image/*" className="max-w-xs" onChange={async (e) => { const file = e.target.files?.[0]; if (file) setF({ ...f, pix_qr: await resizeLogo(file, 600) }); }} />
-          {f.pix_qr && <Button variant="ghost" size="sm" onClick={() => setF({ ...f, pix_qr: null })}>Remover</Button>}
+          {f.logo ? <img src={f.logo} alt="Logo" className="h-16 w-16 rounded bg-foreground/90 object-contain p-1" /> : <div className="grid h-16 w-16 place-items-center rounded bg-muted text-xs text-muted-foreground">Logo</div>}
+          <Input type="file" accept="image/*" className="max-w-xs" onChange={async (e) => { const file = e.target.files?.[0]; if (file) setF({ ...f, logo: await resizeLogo(file) }); }} />
+          {f.logo && <Button variant="ghost" size="sm" onClick={() => setF({ ...f, logo: null })}>Remover</Button>}
         </div>
-      </div>
-      {field("footer", "Rodapé da fatura")}
+        <div className="grid gap-4 md:grid-cols-2">
+          {field("company_name", "Nome da empresa")}
+          {field("address", "Endereço")}
+        </div>
+      </section>
+      <section className="space-y-4 rounded-lg border border-border/60 p-4">
+        <h3 className="font-semibold">2. Contato</h3>
+        <div className="grid gap-4 md:grid-cols-2">
+          {field("phone", "Telefone")}
+          {field("whatsapp", "WhatsApp")}
+          {field("email", "E-mail")}
+          {field("website", "Site / rede social")}
+        </div>
+      </section>
+      <section className="space-y-4 rounded-lg border border-border/60 p-4">
+        <h3 className="font-semibold">3. Pagamento PIX</h3>
+        <div className="space-y-1.5"><Label>Instruções de pagamento</Label><Textarea rows={4} value={f.instructions} onChange={set("instructions")} /></div>
+        <div className="space-y-1.5"><Label>PIX copia e cola (gera o QR Code)</Label><Textarea rows={2} value={f.pix_code} onChange={set("pix_code")} /></div>
+        <div className="space-y-1.5">
+          <Label>Imagem do QR Code PIX (opcional — se enviar, ela é usada no lugar do QR gerado)</Label>
+          <div className="flex items-center gap-4">
+            {f.pix_qr ? <img src={f.pix_qr} alt="QR Code" className="h-20 w-20 rounded bg-foreground p-1 object-contain" /> : <div className="grid h-20 w-20 place-items-center rounded bg-muted text-xs text-muted-foreground">QR</div>}
+            <Input type="file" accept="image/*" className="max-w-xs" onChange={async (e) => { const file = e.target.files?.[0]; if (file) setF({ ...f, pix_qr: await resizeLogo(file, 600) }); }} />
+            {f.pix_qr && <Button variant="ghost" size="sm" onClick={() => setF({ ...f, pix_qr: null })}>Remover</Button>}
+          </div>
+        </div>
+      </section>
+      <section className="space-y-4 rounded-lg border border-border/60 p-4">
+        <h3 className="font-semibold">4. Fatura</h3>
+        {field("footer", "Rodapé da fatura")}
+      </section>
       <Button onClick={save} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
     </div>
   );
