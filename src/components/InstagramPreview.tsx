@@ -23,9 +23,9 @@ function Media({ url, path }: { url?: string; path?: string }) {
       </div>
     );
   return isVideo(path ?? "") ? (
-    <video src={url} className="h-full w-full object-cover" autoPlay loop muted playsInline />
+    <video src={url} className="h-full w-full bg-background object-contain" autoPlay loop muted playsInline />
   ) : (
-    <img src={url} alt="Arte" className="h-full w-full object-cover" />
+    <img src={url} alt="Arte" className="h-full w-full bg-background object-contain" />
   );
 }
 

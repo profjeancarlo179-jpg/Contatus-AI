@@ -27,6 +27,13 @@ export function ApprovalPanel({ token, embedded = false }: { token: string; embe
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
 
+  const { data: igShared } = useQuery({
+    queryKey: ["shared-ig", token],
+    queryFn: async () => {
+      const { data } = await (supabase.rpc as any)("get_shared_instagram", { _token: token });
+      return (data as string | null) ?? "";
+    },
+  });
   async function decide(approved: boolean) {
     setSending(true);
     const { error } = await supabase.rpc("submit_decision", {
@@ -45,7 +52,7 @@ export function ApprovalPanel({ token, embedded = false }: { token: string; embe
   if (isLoading) return <div className="grid min-h-[40vh] place-items-center text-muted-foreground">Carregando…</div>;
   if (!data) return <div className="grid min-h-[40vh] place-items-center text-muted-foreground">Link inválido ou expirado.</div>;
 
-  const handle = (data.client_name || "seu.perfil").toLowerCase().replace(/\s+/g, ".");
+  const handle = (igShared || "").trim().replace(/^@+/, "").replace(/\s+/g, "") || (data.client_name || "seu.perfil").toLowerCase().replace(/\s+/g, ".");
 
   return (
     <div className={embedded ? "" : "mx-auto min-h-screen max-w-5xl px-4 py-10"}>

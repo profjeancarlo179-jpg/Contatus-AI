@@ -661,6 +661,7 @@ export type Database = {
           title: string
         }[]
       }
+      get_shared_instagram: { Args: { _token: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
