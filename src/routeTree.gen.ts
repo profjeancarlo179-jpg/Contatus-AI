@@ -21,7 +21,7 @@ import { Route as AuthenticatedCriarRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedPermissoesRouteImport } from './routes/_authenticated/permissoes'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
-import { Route as AprovarTokenRouteImport } from './routes/aprovar.$token'
+import { Route as ATokenRouteImport } from './routes/a.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -83,9 +83,9 @@ const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AprovarTokenRoute = AprovarTokenRouteImport.update({
-  id: '/aprovar/$token',
-  path: '/aprovar/$token',
+const ATokenRoute = ATokenRouteImport.update({
+  id: '/a/$token',
+  path: '/a/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -101,7 +101,7 @@ export interface FileRoutesByFullPath {
   '/painel': typeof AuthenticatedPainelRoute
   '/permissoes': typeof AuthenticatedPermissoesRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
-  '/aprovar/$token': typeof AprovarTokenRoute
+  '/a/$token': typeof ATokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -115,7 +115,7 @@ export interface FileRoutesByTo {
   '/painel': typeof AuthenticatedPainelRoute
   '/permissoes': typeof AuthenticatedPermissoesRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
-  '/aprovar/$token': typeof AprovarTokenRoute
+  '/a/$token': typeof ATokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -131,7 +131,7 @@ export interface FileRoutesById {
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/permissoes': typeof AuthenticatedPermissoesRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
-  '/aprovar/$token': typeof AprovarTokenRoute
+  '/a/$token': typeof ATokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -147,7 +147,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/permissoes'
     | '/relatorios'
-    | '/aprovar/$token'
+    | '/a/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -161,7 +161,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/permissoes'
     | '/relatorios'
-    | '/aprovar/$token'
+    | '/a/$token'
   id:
     | '__root__'
     | '/'
@@ -176,13 +176,13 @@ export interface FileRouteTypes {
     | '/_authenticated/painel'
     | '/_authenticated/permissoes'
     | '/_authenticated/relatorios'
-    | '/aprovar/$token'
+    | '/a/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AprovarTokenRoute: typeof AprovarTokenRoute
+  ATokenRoute: typeof ATokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -271,11 +271,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/aprovar/$token': {
-      id: '/aprovar/$token'
-      path: '/aprovar/$token'
-      fullPath: '/aprovar/$token'
-      preLoaderRoute: typeof AprovarTokenRouteImport
+    '/a/$token': {
+      id: '/a/$token'
+      path: '/a/$token'
+      fullPath: '/a/$token'
+      preLoaderRoute: typeof ATokenRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -313,7 +313,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AprovarTokenRoute: AprovarTokenRoute,
+  ATokenRoute: ATokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
