@@ -424,6 +424,18 @@ function PctList({ label, rows, onChange, placeholder }: { label: string; rows: 
   );
 }
 
+function countriesFromCities(cities: { name: string; pct: string }[]) {
+  const named = cities.filter((c) => c.name.trim());
+  if (!named.length) return [{ name: "Brasil", pct: "" }];
+  const toNum = (s: string) => Number(String(s).replace(",", ".")) || 0;
+  const total = named.reduce((s, c) => s + toNum(c.pct), 0);
+  const fmt = (n: number) => String(Math.round(n * 10) / 10).replace(".", ",");
+  const br = Math.min(100, total > 0 ? total : 100);
+  const rows = [{ name: "Brasil", pct: fmt(br) }];
+  if (br < 100) rows.push({ name: "Outros", pct: fmt(100 - br) });
+  return rows;
+}
+
 function ExtraFields({ extra, setX }: { extra: ReportExtra; setX: (p: Partial<ReportExtra>) => void }) {
   return (
     <div className="space-y-4 rounded-lg border border-border bg-muted/20 p-3">
@@ -440,8 +452,8 @@ function ExtraFields({ extra, setX }: { extra: ReportExtra; setX: (p: Partial<Re
         </div>
       </div>
       <div className="text-xs font-semibold text-muted-foreground">6. Público</div>
-      <CitySearch rows={extra.cities ?? []} onChange={(cities) => setX({ cities })} />
-      <PctList label="Cidades escolhidas (ajuste o %)" placeholder="Cáceres, MT" rows={extra.cities ?? []} onChange={(cities) => setX({ cities })} />
+      <CitySearch rows={extra.cities ?? []} onChange={(cities) => setX({ cities, countries: countriesFromCities(cities) })} />
+      <PctList label="Cidades escolhidas (ajuste o %)" placeholder="Cáceres, MT" rows={extra.cities ?? []} onChange={(cities) => setX({ cities, countries: countriesFromCities(cities) })} />
       <PctList label="Principais países" placeholder="Brasil" rows={extra.countries ?? []} onChange={(countries) => setX({ countries })} />
       <GenderAges extra={extra} setX={setX} />
       <div className="space-y-1"><Label className="text-xs">Gerado por (usuário)</Label><Input value={extra.generatedBy ?? ""} placeholder="JEAN CARLO" onChange={(e) => setX({ generatedBy: e.target.value })} /></div>
