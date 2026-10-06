@@ -75,14 +75,10 @@ function ProfileLinks() {
       <RedirectPreview pages={pages} previewId={previewId} onSelect={setPreviewId} />)}
   </div>;
 }
-function RedirectPreview({ pages, previewId, onSelect }: { pages: Bio[]; previewId: string; onSelect: (id: string) => void }) {
-  const page = pages.find(p => p.id === previewId) ?? pages[0];
+function RedirectPreview({ pages }: { pages: Bio[] }) {
+  const page = pages[0];
   if (!page) return null;
   return <div className="space-y-6">
-    <div className="space-y-2">
-      <p className="text-muted-foreground">Escolha o perfil para ver como ficou o mockup:</p>
-      <div className="flex flex-wrap gap-2">{pages.map(p => <Button key={p.id} variant={page.id === p.id ? "secondary" : "outline"} onClick={() => onSelect(p.id!)}>{p.name}</Button>)}</div>
-    </div>
     <div className="mx-auto w-full max-w-[420px] space-y-4">
       <h2 className="text-sm font-medium text-muted-foreground">Pré-visualização</h2>
       <div className="min-h-[520px] overflow-hidden rounded-lg border border-border bg-background"><BioPreview bio={page} /></div>
