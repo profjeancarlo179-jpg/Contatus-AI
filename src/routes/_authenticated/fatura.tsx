@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { InvoiceCard, type Invoice } from "@/components/InvoiceCard";
 
 export const Route = createFileRoute("/_authenticated/fatura")({
@@ -14,6 +16,15 @@ export const Route = createFileRoute("/_authenticated/fatura")({
   }),
   component: Fatura,
 });
+
+function printInvoice(id: string) {
+  document.body.dataset.printInvoice = id;
+  const el = document.querySelector(`[data-invoice="${id}"]`);
+  el?.classList.add("printing");
+  const done = () => { el?.classList.remove("printing"); delete document.body.dataset.printInvoice; window.removeEventListener("afterprint", done); };
+  window.addEventListener("afterprint", done);
+  setTimeout(() => window.print(), 50);
+}
 
 function Fatura() {
   const { data: invoices = [], isLoading } = useQuery({
@@ -33,7 +44,7 @@ function Fatura() {
         <p className="text-muted-foreground">Faturas liberadas para você pelo Adm Master.</p>
       </div>
       {!isLoading && invoices.length === 0 && <div className="glass rounded-xl p-8 text-center text-muted-foreground">Nenhuma fatura liberada.</div>}
-      <div className="space-y-3">{invoices.map((i) => <InvoiceCard key={i.id} i={i} />)}</div>
+      <div className="space-y-3">{invoices.map((i) => <div key={i.id} data-invoice={i.id}><InvoiceCard i={i} actions={<Button variant="outline" size="sm" className="no-print" onClick={() => printInvoice(i.id)}><Printer /> Reimprimir fatura</Button>} /></div>)}</div>
     </div>
   );
 }
