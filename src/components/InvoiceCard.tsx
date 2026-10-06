@@ -6,13 +6,37 @@ export type Invoice = {
   services_done?: { name: string; description?: string | null }[] | null; work_summary?: string | null;
 };
 
+const MONTHS_PT = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+// Rótulo "Mês NN ref: Mês" calculado por cliente, na ordem dos vencimentos.
+export function refLabels(invoices: Invoice[]): Record<string, string> {
+  const map: Record<string, string> = {};
+  const byClient = new Map<string, Invoice[]>();
+  for (const i of invoices) {
+    const arr = byClient.get(i.client_id) ?? [];
+    arr.push(i);
+    byClient.set(i.client_id, arr);
+  }
+  for (const list of byClient.values()) {
+    const key = (x: Invoice) => x.due_date || x.created_at.slice(0, 10);
+    const sorted = [...list].sort((a, b) => key(a).localeCompare(key(b)));
+    const base = new Date(key(sorted[0]) + "T00:00");
+    for (const i of sorted) {
+      const d = new Date(key(i) + "T00:00");
+      const n = (d.getFullYear() - base.getFullYear()) * 12 + (d.getMonth() - base.getMonth()) + 1;
+      map[i.id] = `Mês ${String(n).padStart(2, "0")} ref: ${MONTHS_PT[d.getMonth()]}`;
+    }
+  }
+  return map;
+}
+
 const STATUS: Record<string, { label: string; cls: string }> = {
   pendente: { label: "Pendente", cls: "bg-warning/15 text-warning" },
   paga: { label: "Paga", cls: "bg-success/15 text-success" },
   cancelada: { label: "Cancelada", cls: "bg-destructive/15 text-destructive" },
 };
 
-export function InvoiceCard({ i, clientName, actions }: { i: Invoice; clientName?: string; actions?: ReactNode }) {
+export function InvoiceCard({ i, clientName, actions, refLabel }: { i: Invoice; clientName?: string; actions?: ReactNode; refLabel?: string }) {
   const s = STATUS[i.status] ?? STATUS.pendente;
   return (
     <div className="glass invoice-print rounded-xl p-5">
@@ -20,7 +44,7 @@ export function InvoiceCard({ i, clientName, actions }: { i: Invoice; clientName
         <div>
           <p className="font-semibold">{i.description}</p>
           <p className="text-xs text-muted-foreground">
-            {clientName ? `${clientName} · ` : ""}Emitida em {new Date(i.created_at).toLocaleDateString("pt-BR")}
+            {clientName ? `${clientName} · ` : ""}{refLabel ?? `Emitida em ${new Date(i.created_at).toLocaleDateString("pt-BR")}`}
             {i.due_date ? ` · Vence ${new Date(i.due_date + "T00:00").toLocaleDateString("pt-BR")}` : ""}
           </p>
         </div>
