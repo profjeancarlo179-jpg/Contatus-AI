@@ -1,4 +1,4 @@
-export type BioLink = { id: string; label: string; url: string; enabled: boolean; icon?: string };
+export type BioLink = { id: string; label: string; url: string; enabled: boolean; icon?: string; iconImage?: string };
 export type BioAppearance = { background?: string; text?: string; button?: string; buttonText?: string; shape?: string; buttonStyle?: string; font?: string; socials?: Record<string, string> };
 export type Bio = { id?: string; slug: string; name: string; description: string; photo: string; links: BioLink[]; published: boolean; appearance?: BioAppearance };
 export const BIO_DEFAULTS = { background: "#101014", text: "#f4f4f6", button: "#25212f", buttonText: "#f4f4f6", shape: "rounded", buttonStyle: "solid", font: "manrope" };
