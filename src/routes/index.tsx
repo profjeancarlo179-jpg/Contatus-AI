@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Eye, EyeOff, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ function Login() {
   const [name, setName] = useState("");
   const [agency, setAgency] = useState("");
   const [loading, setLoading] = useState(false);
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -56,7 +57,14 @@ function Login() {
         }
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao entrar");
+      const msg = err instanceof Error ? err.message : "";
+      toast.error(
+        /invalid login/i.test(msg)
+          ? "E-mail ou senha incorretos. Clique no olho para conferir a senha digitada."
+          : /already registered/i.test(msg)
+            ? "Este e-mail já tem conta. Use “Entrar”."
+            : msg || "Erro ao entrar",
+      );
     } finally {
       setLoading(false);
     }
@@ -92,7 +100,15 @@ function Login() {
             </>
           )}
           <div className="space-y-1.5"><Label>E-mail</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
-          <div className="space-y-1.5"><Label>Senha</Label><Input type="password" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
+          <div className="space-y-1.5">
+            <Label>Senha</Label>
+            <div className="relative">
+              <Input type={show ? "text" : "password"} minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} required className="pr-10" />
+              <button type="button" aria-label={show ? "Ocultar senha" : "Mostrar senha"} onClick={() => setShow(!show)} className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
           <Button type="submit" variant="neon" className="w-full" disabled={loading}>
             {loading ? "Aguarde…" : mode === "in" ? "Entrar" : "Criar conta"}
           </Button>
