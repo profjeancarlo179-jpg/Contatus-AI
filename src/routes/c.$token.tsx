@@ -72,11 +72,18 @@ function SignPage() {
   return (
     <div className="min-h-screen bg-background px-4 py-10">
       <div className="invoice-print mx-auto max-w-3xl space-y-6 rounded-xl bg-card p-6 sm:p-10">
-        <div>
-          <h1 className="text-2xl font-bold">{data.title}</h1>
+        <div className="border-b border-border pb-4 text-center">
+          <h1 className="text-2xl font-bold uppercase">{data.title}</h1>
           <p className="text-sm text-muted-foreground">Para {data.client_name} · {new Date(data.created_at).toLocaleDateString("pt-BR")}</p>
         </div>
-        <div className="whitespace-pre-wrap rounded-lg border border-border p-5 text-sm leading-relaxed">{data.body}</div>
+        <div className="space-y-1 rounded-lg border border-border p-5 text-sm leading-relaxed">
+          {data.body.split("\n").map((line, i) => {
+            const t = line.trim();
+            if (!t) return <div key={i} className="h-2" />;
+            const heading = /^(\d+\.\s|CONTRATADA$|CONTRATANTE$|OBJETO DO CONTRATO$|CLÁUSULAS$)/.test(t) || (/^[A-ZÀ-Ú\s/()]+:?$/.test(t) && t.length > 3);
+            return <p key={i} className={heading ? "pt-2 font-bold text-primary" : ""}>{line}</p>;
+          })}
+        </div>
         {data.status === "assinado" ? (
           <div className="space-y-3 rounded-lg border border-success/40 p-5">
             <p className="flex items-center gap-2 font-semibold text-success"><CheckCircle2 className="h-5 w-5" /> Contrato assinado digitalmente</p>

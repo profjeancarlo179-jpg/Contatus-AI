@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Building2, ImageIcon, Loader2, Lock, Plus, Search, Trash2, Upload } from "lucide-react";
+import { Building2, ImageIcon, KeyRound, Loader2, Lock, Plus, Search, Trash2, Upload } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { createUser } from "@/lib/users.functions";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadMedia, useMediaUrls } from "@/lib/content";
@@ -42,12 +44,12 @@ type Client = {
   id: string; name: string; segment: string | null; profile_description: string | null; logo_path: string | null;
   brand_arts: string[]; brand_colors: string | null; brand_fonts: string | null;
   resp_name: string | null; resp_role: string | null; resp_email: string | null; resp_phone: string | null; resp_document: string | null;
-  socials: Record<string, string>; notes: string | null;
+  socials: Record<string, string>; notes: string | null; user_id: string | null;
 };
 
 const EMPTY: Omit<Client, "id"> = {
   name: "", segment: "", profile_description: "", logo_path: null, brand_arts: [], brand_colors: "", brand_fonts: "",
-  resp_name: "", resp_role: "", resp_email: "", resp_phone: "", resp_document: "", socials: {}, notes: "",
+  resp_name: "", resp_role: "", resp_email: "", resp_phone: "", resp_document: "", socials: {}, notes: "", user_id: null,
 };
 
 function Clientes() {
@@ -120,6 +122,15 @@ function Section({ title, children, icon }: { title: string; children: React.Rea
 function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved: (id: string) => void; onDeleted: () => void }) {
   const [d, setD] = useState<Omit<Client, "id">>(() => ({ ...EMPTY, ...(initial ?? {}), socials: { ...(initial?.socials ?? {}) } }));
   const [busy, setBusy] = useState(false);
+  const qc = useQueryClient();
+  const createFn = useServerFn(createUser);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPass, setLoginPass] = useState("");
+  const [creating, setCreating] = useState(false);
+  const { data: users = [] } = useQuery({
+    queryKey: ["client-users"],
+    queryFn: async () => ((await supabase.rpc("list_clients")).data ?? []) as { id: string; email: string | null; full_name: string | null }[],
+  });
   const [uploading, setUploading] = useState(false);
   const [logo] = useMediaUrls(d.logo_path ? [d.logo_path] : []);
   const arts = useMediaUrls(d.brand_arts);
@@ -143,6 +154,21 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
     } finally {
       setUploading(false);
     }
+  }
+
+  async function createLogin() {
+    const email = (loginEmail || d.resp_email || "").trim();
+    if (!email || loginPass.length < 6) return toast.error("Informe e-mail e senha (mín. 6 caracteres)");
+    setCreating(true);
+    try {
+      const r = await createFn({ data: { email, password: loginPass, full_name: d.resp_name || d.name, agency_name: d.name, role: "client" } });
+      set("user_id", r.id);
+      qc.invalidateQueries({ queryKey: ["client-users"] });
+      toast.success("Login criado e vinculado. Clique em Salvar.");
+      setLoginPass("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao criar login");
+    } finally { setCreating(false); }
   }
 
   async function save() {
@@ -216,6 +242,26 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
           {field("resp_phone", "Telefone / WhatsApp")}
           {field("resp_document", "CPF / CNPJ")}
         </div>
+      </Section>
+
+      <Section title="Acesso ao app (usuário e senha)" icon={<KeyRound className="h-4 w-4 text-primary" />}>
+        <div className="space-y-1.5">
+          <Label>Usuário vinculado</Label>
+          <select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={d.user_id ?? ""} onChange={(e) => set("user_id", e.target.value || null)}>
+            <option value="">Nenhum</option>
+            {users.map((u) => <option key={u.id} value={u.id}>{(u.full_name || u.email) + (u.full_name ? ` — ${u.email}` : "")}</option>)}
+          </select>
+        </div>
+        {!d.user_id && (
+          <div className="space-y-3 rounded-lg border border-border p-4">
+            <p className="text-sm text-muted-foreground">Ou crie um login novo para este cliente:</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5"><Label>E-mail (usuário)</Label><Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder={d.resp_email ?? ""} /></div>
+              <div className="space-y-1.5"><Label>Senha (mín. 6)</Label><Input type="text" value={loginPass} onChange={(e) => setLoginPass(e.target.value)} /></div>
+            </div>
+            <Button variant="outline" disabled={creating} onClick={createLogin}>{creating && <Loader2 className="animate-spin" />} Criar login e vincular</Button>
+          </div>
+        )}
       </Section>
 
       <Section title="Redes sociais">
