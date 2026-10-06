@@ -52,6 +52,7 @@ export type Database = {
       }
       bio_pages: {
         Row: {
+          appearance: Json
           created_at: string
           description: string
           id: string
@@ -64,6 +65,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          appearance?: Json
           created_at?: string
           description?: string
           id?: string
@@ -76,6 +78,7 @@ export type Database = {
           user_id?: string
         }
         Update: {
+          appearance?: Json
           created_at?: string
           description?: string
           id?: string
@@ -352,6 +355,7 @@ export type Database = {
       get_bio_page: {
         Args: { _slug: string }
         Returns: {
+          appearance: Json
           description: string
           links: Json
           name: string
