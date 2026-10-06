@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ImageIcon, Trash2 } from "lucide-react";
+import { ImageIcon, Repeat, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchContents, FORMAT_LABEL, isVideo, useMediaUrls, type Content } from "@/lib/content";
@@ -148,6 +148,20 @@ function Approved({ data }: { data: Content[] }) {
 }
 
 function ApprovedCard({ c }: { c: Content }) {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  async function repost() {
+    setBusy(true);
+    const { error } = await supabase.from("contents").insert({
+      title: `${c.title} (postar novamente)`, kind: c.kind, format: c.format, caption: c.caption, hashtags: c.hashtags,
+      image_urls: c.image_urls, audio: c.audio, location: c.location, client_name: c.client_name, client_email: c.client_email,
+      status: "draft",
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Pedido criado: a arte foi copiada para os rascunhos em Pré-visualizar & Aprovação");
+    qc.invalidateQueries({ queryKey: ["contents"] });
+  }
   const [thumb] = useMediaUrls(c.image_urls.slice(0, 1));
   const when = c.decided_at ?? c.updated_at;
   return (
@@ -164,6 +178,7 @@ function ApprovedCard({ c }: { c: Content }) {
         <div className="text-xs text-success">
           Aprovada em {new Date(when).toLocaleDateString("pt-BR")}{c.auto_approved ? " (automática)" : ""}
         </div>
+        <Button size="sm" variant="outline" className="mt-2 w-full" disabled={busy} onClick={repost}><Repeat /> Postar novamente</Button>
       </div>
     </div>
   );

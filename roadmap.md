@@ -22,3 +22,4 @@
 - [x] Menu em duas linhas
 - [x] Aprovação: sub-abas Geral e Arquivos (aguardando, salvos para editar, aprovados com data)
 - [x] Link do perfil: escolher redes sociais exibidas e adicionar redes personalizadas
+- [x] Artes aprovadas: botão 'Postar novamente' (duplica arte como rascunho)
