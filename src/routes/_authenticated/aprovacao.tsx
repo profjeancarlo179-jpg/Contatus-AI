@@ -1,3 +1,4 @@
+import { useSubTabs } from "@/lib/access";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -35,6 +36,8 @@ function Aprovacao() {
   const { id: initialId } = Route.useSearch();
   const [selectedId, setSelectedId] = useState<string | "new">(initialId ?? "new");
   const [tab, setTab] = useState("geral");
+  const sub = useSubTabs("/aprovacao");
+  useEffect(() => { if (sub.ready && !sub.can(tab)) setTab(sub.first("geral")); }, [sub.ready]);
   const selected = data.find((c) => c.id === selectedId);
   const open = (id: string) => { setSelectedId(id); setTab("geral"); window.scrollTo({ top: 0 }); };
 
@@ -46,10 +49,10 @@ function Aprovacao() {
       </div>
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
-          <TabsTrigger value="geral">Geral</TabsTrigger>
-          <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
-          <TabsTrigger value="postar">Postar</TabsTrigger>
-          <TabsTrigger value="reprovado">Reprovado</TabsTrigger>
+          {sub.can("geral") && <TabsTrigger value="geral">Geral</TabsTrigger>}
+          {sub.can("arquivos") && <TabsTrigger value="arquivos">Arquivos</TabsTrigger>}
+          {sub.can("postar") && <TabsTrigger value="postar">Postar</TabsTrigger>}
+          {sub.can("reprovado") && <TabsTrigger value="reprovado">Reprovado</TabsTrigger>}
         </TabsList>
         <TabsContent value="arquivos" className="mt-6"><ApprovalFiles data={data} onOpen={open} /></TabsContent>
         <TabsContent value="postar" className="mt-6"><PostarTab data={data} /></TabsContent>

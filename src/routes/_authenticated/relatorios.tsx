@@ -1,3 +1,4 @@
+import { useSubTabs } from "@/lib/access";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -48,16 +49,17 @@ type Client = { id: string; email: string | null; full_name: string | null; agen
 function Relatorios() {
   const { data: access } = useAccess();
   const staff = isStaff(access?.role);
+  const sub = useSubTabs("/relatorios");
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Relatórios</h1>
         <p className="text-muted-foreground">Métricas das redes sociais, liberadas pelo Adm para cada cliente.</p>
       </div>
-      <Tabs defaultValue={staff ? "adm" : "cliente"} key={String(staff)}>
+      <Tabs defaultValue={sub.first(staff ? "adm" : "cliente")} key={String(staff) + sub.ready}>
         <TabsList>
-          <TabsTrigger value="cliente">Cliente</TabsTrigger>
-          {staff && <TabsTrigger value="adm">Adm</TabsTrigger>}
+          {sub.can("cliente") && <TabsTrigger value="cliente">Cliente</TabsTrigger>}
+          {staff && sub.can("adm") && <TabsTrigger value="adm">Adm</TabsTrigger>}
         </TabsList>
         <TabsContent value="cliente" className="mt-6"><ClientView /></TabsContent>
         {staff && <TabsContent value="adm" className="mt-6"><AdmView /></TabsContent>}

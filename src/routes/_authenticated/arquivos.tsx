@@ -1,3 +1,4 @@
+import { useSubTabs } from "@/lib/access";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -98,17 +99,18 @@ function StaffArquivos() {
     qc.invalidateQueries({ queryKey: ["contents"] });
   }
 
+  const sub = useSubTabs("/arquivos");
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Arquivos</h1>
         <p className="text-muted-foreground">Todo o histórico, com o status de aprovação de cada arte.</p>
       </div>
-      <Tabs defaultValue="arquivos">
+      <Tabs defaultValue={sub.first("arquivos")} key={String(sub.ready)}>
         <TabsList>
-          <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
-          <TabsTrigger value="pendentes">Arte pendente de aprovação</TabsTrigger>
-          <TabsTrigger value="aprovadas">Artes aprovadas</TabsTrigger>
+          {sub.can("arquivos") && <TabsTrigger value="arquivos">Arquivos</TabsTrigger>}
+          {sub.can("pendentes") && <TabsTrigger value="pendentes">Arte pendente de aprovação</TabsTrigger>}
+          {sub.can("aprovadas") && <TabsTrigger value="aprovadas">Artes aprovadas</TabsTrigger>}
         </TabsList>
         <TabsContent value="pendentes" className="mt-6"><PendingTab data={data} /></TabsContent>
         <TabsContent value="aprovadas" className="mt-6"><Approved data={data} /></TabsContent>
