@@ -96,11 +96,13 @@ function Relatorios() {
         <h1 className="text-3xl font-bold">Relatórios</h1>
         <p className="text-muted-foreground">Métricas das redes sociais, liberadas pelo Adm para cada cliente.</p>
       </div>
-      <Tabs defaultValue={sub.first(staff ? "adm" : "cliente")} key={String(staff) + sub.ready}>
+      <Tabs defaultValue={sub.first(staff ? "dashboard" : "cliente")} key={String(staff) + sub.ready}>
         <TabsList>
+          {staff && sub.can("dashboard") && <TabsTrigger value="dashboard">Dashboard</TabsTrigger>}
           {sub.can("cliente") && <TabsTrigger value="cliente">Cliente</TabsTrigger>}
           {staff && sub.can("adm") && <TabsTrigger value="adm">Adm</TabsTrigger>}
         </TabsList>
+        {staff && <TabsContent value="dashboard" className="mt-6"><DashboardView /></TabsContent>}
         <TabsContent value="cliente" className="mt-6"><ClientView /></TabsContent>
         {staff && <TabsContent value="adm" className="mt-6"><AdmView /></TabsContent>}
       </Tabs>
