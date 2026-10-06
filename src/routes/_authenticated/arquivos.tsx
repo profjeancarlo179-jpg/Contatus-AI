@@ -8,6 +8,7 @@ import { fetchContents, FORMAT_LABEL, isVideo, useMediaUrls, type Content } from
 import { StatusBadge } from "@/components/StatusBadge";
 import { FeedbackCard } from "@/components/FeedbackCard";
 import { ContentEditor } from "@/components/ContentEditor";
+import { InstagramPreview } from "@/components/InstagramPreview";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
