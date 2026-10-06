@@ -50,6 +50,53 @@ export type Database = {
         }
         Relationships: []
       }
+      bio_pages: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          links: Json
+          name: string
+          photo: string
+          published: boolean
+          slug: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          links?: Json
+          name: string
+          photo?: string
+          published?: boolean
+          slug: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          links?: Json
+          name?: string
+          photo?: string
+          published?: boolean
+          slug?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bio_pages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           brand_arts: string[]
@@ -302,6 +349,15 @@ export type Database = {
     }
     Functions: {
       auto_approve_expired: { Args: never; Returns: undefined }
+      get_bio_page: {
+        Args: { _slug: string }
+        Returns: {
+          description: string
+          links: Json
+          name: string
+          photo: string
+        }[]
+      }
       get_shared_content: {
         Args: { _token: string }
         Returns: {
