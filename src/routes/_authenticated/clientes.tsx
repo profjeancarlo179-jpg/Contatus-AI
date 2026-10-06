@@ -267,9 +267,12 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
               <div className="space-y-1.5"><Label>E-mail (usuário)</Label><Input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder={d.resp_email ?? ""} /></div>
               <div className="space-y-1.5"><Label>Senha (mín. 6)</Label><Input type="text" value={loginPass} onChange={(e) => setLoginPass(e.target.value)} /></div>
             </div>
-            <Button variant="outline" disabled={creating} onClick={createLogin}>{creating && <Loader2 className="animate-spin" />} Criar login e vincular</Button>
+            <Button variant="outline" disabled={creating} onClick={createLogin}>{creating && <Loader2 className="animate-spin" />} Criar login, vincular e salvar</Button>
           </div>
         )}
+        <div>
+          <Button variant="neon" size="sm" onClick={save} disabled={busy || uploading}>{busy && <Loader2 className="animate-spin" />} Salvar acesso</Button>
+        </div>
       </Section>
 
       <Section title="Redes sociais">
