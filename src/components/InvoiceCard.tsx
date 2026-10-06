@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 export type Invoice = {
   id: string; client_id: string; description: string; amount: number; due_date: string | null;
   notes: string | null; status: string; released: boolean; created_at: string; paid_at?: string | null;
+  services_done?: { name: string; description?: string | null }[] | null; work_summary?: string | null;
 };
 
 const STATUS: Record<string, { label: string; cls: string }> = {
@@ -32,6 +33,17 @@ export function InvoiceCard({ i, clientName, actions }: { i: Invoice; clientName
           {i.status === "paga" && i.paid_at && <p className="mt-1 text-xs text-success">Pago em {new Date(i.paid_at).toLocaleDateString("pt-BR")}</p>}
         </div>
       </div>
+      {i.status === "paga" && ((i.services_done?.length ?? 0) > 0 || i.work_summary) && (
+        <div className="mt-3 rounded-lg border border-success/30 bg-success/5 p-3 text-sm">
+          <p className="mb-1 font-medium text-success">Serviços realizados</p>
+          {(i.services_done?.length ?? 0) > 0 && (
+            <ul className="list-disc space-y-0.5 pl-5">
+              {i.services_done!.map((s, k) => <li key={k}>{s.name}{s.description ? <span className="text-muted-foreground"> — {s.description}</span> : null}</li>)}
+            </ul>
+          )}
+          {i.work_summary && <p className="mt-2 whitespace-pre-wrap text-muted-foreground">{i.work_summary}</p>}
+        </div>
+      )}
       {i.notes && <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">{i.notes}</p>}
       {actions && <div className="mt-4 flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
