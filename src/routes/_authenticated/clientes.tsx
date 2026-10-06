@@ -44,12 +44,12 @@ type Client = {
   id: string; name: string; segment: string | null; profile_description: string | null; logo_path: string | null;
   brand_arts: string[]; brand_colors: string | null; brand_fonts: string | null;
   resp_name: string | null; resp_role: string | null; resp_email: string | null; resp_phone: string | null; resp_document: string | null;
-  socials: Record<string, string>; notes: string | null; user_id: string | null; user_ids: string[];
+  socials: Record<string, string>; observations: string | null; notes: string | null; user_id: string | null; user_ids: string[];
 };
 
 const EMPTY: Omit<Client, "id"> = {
   name: "", segment: "", profile_description: "", logo_path: null, brand_arts: [], brand_colors: "", brand_fonts: "",
-  resp_name: "", resp_role: "", resp_email: "", resp_phone: "", resp_document: "", socials: {}, notes: "", user_id: null, user_ids: [],
+  resp_name: "", resp_role: "", resp_email: "", resp_phone: "", resp_document: "", socials: {}, observations: "", notes: "", user_id: null, user_ids: [],
 };
 
 function Clientes() {
@@ -301,6 +301,11 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
             </div>
           ))}
         </div>
+      </Section>
+
+      <Section title="Observações">
+        <p className="text-xs text-muted-foreground">Informações gerais sobre o cliente, histórico e combinações do dia a dia.</p>
+        <Textarea rows={4} value={d.observations ?? ""} onChange={(e) => set("observations", e.target.value)} placeholder="Ex: cliente prefere artes com fundo claro; enviar relatório toda segunda…" />
       </Section>
 
       <Section title="Anotações gerais" icon={<Lock className="h-4 w-4 text-warning" />}>

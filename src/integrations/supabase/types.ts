@@ -163,6 +163,7 @@ export type Database = {
           logo_path: string | null
           name: string
           notes: string | null
+          observations: string | null
           profile_description: string | null
           resp_document: string | null
           resp_email: string | null
@@ -185,6 +186,7 @@ export type Database = {
           logo_path?: string | null
           name: string
           notes?: string | null
+          observations?: string | null
           profile_description?: string | null
           resp_document?: string | null
           resp_email?: string | null
@@ -207,6 +209,7 @@ export type Database = {
           logo_path?: string | null
           name?: string
           notes?: string | null
+          observations?: string | null
           profile_description?: string | null
           resp_document?: string | null
           resp_email?: string | null
