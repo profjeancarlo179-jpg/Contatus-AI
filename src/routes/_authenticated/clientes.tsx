@@ -49,7 +49,7 @@ type Client = {
 
 const EMPTY: Omit<Client, "id"> = {
   name: "", segment: "", profile_description: "", logo_path: null, brand_arts: [], brand_colors: "", brand_fonts: "",
-  resp_name: "", resp_role: "", resp_email: "", resp_phone: "", resp_document: "", socials: {}, notes: "", user_id: null, user_ids: [],
+  resp_name: "", resp_role: "", resp_email: "", resp_phone: "", resp_document: "", socials: {}, observations: "", notes: "", user_id: null, user_ids: [],
 };
 
 function Clientes() {
