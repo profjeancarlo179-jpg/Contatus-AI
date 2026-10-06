@@ -252,10 +252,6 @@ function AdmView() {
     queryKey: ["clients"],
     queryFn: async () => ((await supabase.rpc("list_clients")).data ?? []) as Client[],
   });
-  const { data: reports = [] } = useQuery({
-    queryKey: ["reports", "all"],
-    queryFn: async () => ((await supabase.from("reports").select("*").order("created_at", { ascending: false })).data ?? []) as unknown as Report[],
-  });
   const [clientId, setClientId] = useState("");
   const [title, setTitle] = useState("");
   const [period, setPeriod] = useState("");
