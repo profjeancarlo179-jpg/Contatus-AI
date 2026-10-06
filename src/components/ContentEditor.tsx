@@ -1,13 +1,17 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Loader2, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { InstagramPreview } from "@/components/InstagramPreview";
 import { FORMAT_LABEL, uploadMedia, useMediaUrls, type Content } from "@/lib/content";
+
+type ClientOption = { id: string; name: string; socials: Record<string, string> | null };
 
 const KIND_BY_FORMAT: Record<string, string> = { feed: "post", carousel: "carousel", reels: "video", stories: "post" };
 
