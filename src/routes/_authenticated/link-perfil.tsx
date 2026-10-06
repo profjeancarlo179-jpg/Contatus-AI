@@ -37,7 +37,6 @@ function ProfileLinks() {
     return (data ?? []) as unknown as Bio[];
   } });
   const [tab, setTab] = useState<"novo" | "editar" | "arquivo" | "redirect">("novo");
-  const [previewId, setPreviewId] = useState("");
   const editId = selected;
   const current = pages.find(p => p.id === editId);
   const refresh = () => qc.invalidateQueries({ queryKey: ["bio-pages"] });
