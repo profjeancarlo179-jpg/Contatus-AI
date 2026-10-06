@@ -472,6 +472,24 @@ export type Database = {
         }
         Relationships: []
       }
+      role_tab_access: {
+        Row: {
+          role: string
+          tabs: string[]
+          updated_at: string
+        }
+        Insert: {
+          role: string
+          tabs?: string[]
+          updated_at?: string
+        }
+        Update: {
+          role?: string
+          tabs?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -605,6 +623,10 @@ export type Database = {
           share_token: string
           title: string
         }[]
+      }
+      set_role_tabs: {
+        Args: { _role: string; _tabs: string[] }
+        Returns: undefined
       }
       set_user_access: {
         Args: { _approved: boolean; _role: string; _user: string }
