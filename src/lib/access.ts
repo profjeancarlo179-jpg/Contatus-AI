@@ -57,11 +57,12 @@ export function canSeeTab(access: { role: string; tabs: string[] | null } | unde
 /** Sub-tabs per page. Stored in the same tabs array as "<page>#<key>". */
 export const SUB_TABS: Record<string, { key: string; label: string }[]> = {
   "/criar": [{ key: "single", label: "Post individual" }, { key: "batch", label: "Gerador em lote" }],
-  "/aprovacao": [{ key: "geral", label: "Geral" }, { key: "arquivos", label: "Arquivos" }, { key: "postar", label: "Postar" }, { key: "reprovado", label: "Reprovado" }],
+  "/aprovacao": [{ key: "geral", label: "Geral" }, { key: "arquivos", label: "Arquivos" }, { key: "arq-aprovados", label: "Arquivos › Aprovados" }, { key: "arq-reprovados", label: "Arquivos › Reprovados" }, { key: "postar", label: "Postar" }, { key: "reprovado", label: "Reprovado" }],
   "/arquivos": [{ key: "arquivos", label: "Arquivos" }, { key: "pendentes", label: "Arte pendente de aprovação" }, { key: "aprovadas", label: "Artes aprovadas" }],
   "/criacao": [{ key: "imagem", label: "Imagem" }, { key: "video", label: "Vídeo" }, { key: "edicao", label: "Edição de vídeo" }],
   "/link-perfil": [{ key: "novo", label: "Novo" }, { key: "editar", label: "Editar" }, { key: "arquivo", label: "Arquivo" }, { key: "redirect", label: "Link de redirecionamento" }],
   "/relatorios": [{ key: "dashboard", label: "Dashboard" }, { key: "arquivos", label: "Arquivos" }, { key: "cliente", label: "Cliente" }, { key: "adm", label: "Adm" }],
+  "/configuracoes": [{ key: "ia", label: "Configurações de IA" }, { key: "pagamento", label: "Configurações de pagamento" }, { key: "email", label: "Configurações de e-mail" }],
   "/financeiro": [{ key: "central", label: "Central de faturas" }, { key: "gerar", label: "Gerar fatura" }, { key: "baixa", label: "Baixa de fatura" }, { key: "servicos", label: "Serviços" }, { key: "contrato", label: "Contrato" }],
 };
 

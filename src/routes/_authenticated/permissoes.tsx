@@ -156,13 +156,13 @@ function TabsDialog({ user, current, onClose, onSaved, roleOnly }: { user: U; cu
                 <Checkbox checked={sel.includes(t.to)} onCheckedChange={(c) => togglePage(t.to, !!c)} />
                 {t.label}
               </label>
-              {sel.includes(t.to) && SUB_TABS[t.to] && (
+              {SUB_TABS[t.to] && (
                 <div className="mt-2 grid gap-1.5 pl-6 sm:grid-cols-2">
                   {SUB_TABS[t.to].map((x) => {
                     const k = `${t.to}#${x.key}`;
                     return (
                       <label key={k} className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-                        <Checkbox checked={sel.includes(k)} onCheckedChange={(c) => toggle(k, !!c)} />
+                        <Checkbox checked={sel.includes(k)} onCheckedChange={(c) => { toggle(k, !!c); if (c) toggle(t.to, true); }} />
                         {x.label}
                       </label>
                     );
