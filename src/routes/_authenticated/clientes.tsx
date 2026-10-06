@@ -303,6 +303,11 @@ function ClientForm({ initial, onSaved, onDeleted }: { initial?: Client; onSaved
         </div>
       </Section>
 
+      <Section title="Observações">
+        <p className="text-xs text-muted-foreground">Informações gerais sobre o cliente, histórico e combinações do dia a dia.</p>
+        <Textarea rows={4} value={d.observations ?? ""} onChange={(e) => set("observations", e.target.value)} placeholder="Ex: cliente prefere artes com fundo claro; enviar relatório toda segunda…" />
+      </Section>
+
       <Section title="Anotações gerais" icon={<Lock className="h-4 w-4 text-warning" />}>
         <p className="text-xs text-muted-foreground">Visível apenas para Adm e Adm Master. Use para acessos, senhas, combinados e observações.</p>
         <Textarea rows={6} value={d.notes ?? ""} onChange={(e) => set("notes", e.target.value)} placeholder="Ex: Instagram — login: … senha: …" />
