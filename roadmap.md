@@ -1,4 +1,5 @@
 # Contatus AI — Roadmap
+- [x] Personalizar bio: ícones dos links, cores, estilo de botões e fonte; salvar e exibir na página pública
 - [x] Aba Link do perfil: edição de foto, descrição e links; página pública sem login
 - [x] Banco de dados (perfis, conteúdos, auditorias, arquivos de mídia)
 - [x] Login e-mail/senha

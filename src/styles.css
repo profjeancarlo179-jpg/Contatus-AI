@@ -111,3 +111,22 @@
   backdrop-filter: blur(14px);
   border: 1px solid var(--color-border);
 }
+
+/* User-selected bio colors are scoped tokens, never app-wide theme overrides. */
+.bio-page { background: var(--bio-background, var(--background)); color: var(--bio-text, var(--foreground)); }
+.bio-page h1 { font-family: inherit; letter-spacing: 0; }
+.bio-font-manrope { font-family: var(--font-sans); }
+.bio-font-sora { font-family: var(--font-display); }
+.bio-font-system { font-family: system-ui, sans-serif; }
+.bio-avatar { border-color: var(--bio-button); background: color-mix(in srgb, var(--bio-text) 8%, var(--bio-background)); }
+.bio-page .bio-button { background: var(--bio-button); color: var(--bio-button-text); border: 2px solid var(--bio-button); height: auto; }
+.bio-page .bio-button:hover { background: var(--bio-button); color: var(--bio-button-text); filter: brightness(1.1); }
+.bio-page .bio-style-outline, .bio-page .bio-style-outline:hover { background: transparent; color: var(--bio-button); }
+.bio-page .bio-shape-rounded { border-radius: 8px; }
+.bio-page .bio-shape-pill { border-radius: 999px; }
+.bio-page .bio-shape-square { border-radius: 0; }
+.bio-theme-swatch { display: inline-block; width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--border); }
+.bio-theme-swatch-0 { background: #101014; }
+.bio-theme-swatch-1 { background: #e5f4e5; }
+.bio-theme-swatch-2 { background: #fce5ed; }
+.bio-theme-swatch-3 { background: #e8f1ff; }
