@@ -58,7 +58,6 @@ function Aprovacao() {
           ))}
         </aside>
         <div className="space-y-6">
-          {selected && <SendCard content={selected} />}
           <div className="glass rounded-xl p-6">
             <ContentEditor
               key={selectedId}
@@ -70,6 +69,13 @@ function Aprovacao() {
               }}
             />
           </div>
+          {selected ? (
+            <SendCard content={selected} />
+          ) : (
+            <div className="glass rounded-xl border-dashed p-6 text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">Link público de aprovação:</span> salve a arte acima para gerar o link que o cliente abre sem precisar de login.
+            </div>
+          )}
         </div>
       </div>
     </div>
