@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InvoiceCard, type Invoice } from "@/components/InvoiceCard";
-import { InvoicePrint, usePaymentSettings } from "@/components/InvoicePrint";
+import { InvoicePrint, printInvoicePaper, usePaymentSettings } from "@/components/InvoicePrint";
 
 export const Route = createFileRoute("/_authenticated/fatura")({
   head: () => ({
@@ -19,12 +19,8 @@ export const Route = createFileRoute("/_authenticated/fatura")({
 });
 
 function printInvoice(id: string) {
-  document.body.dataset.printInvoice = id;
   const el = document.querySelector(`[data-invoice="${id}"]`);
-  el?.classList.add("printing");
-  const done = () => { el?.classList.remove("printing"); delete document.body.dataset.printInvoice; window.removeEventListener("afterprint", done); };
-  window.addEventListener("afterprint", done);
-  setTimeout(() => window.print(), 50);
+  printInvoicePaper(el as HTMLElement | null);
 }
 
 function Fatura() {
