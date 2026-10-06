@@ -17,7 +17,7 @@ function PublicBio() {
   const { data, isLoading, error } = useQuery({ queryKey: ["public-bio", slug], queryFn: async () => {
     const { data, error } = await supabase.rpc("get_bio_page", { _slug: slug });
     if (error) throw error;
-    return data?.[0] as unknown as Pick<Bio, "name" | "description" | "photo" | "links"> | undefined;
+    return data?.[0] as unknown as Pick<Bio, "name" | "description" | "photo" | "links" | "appearance"> | undefined;
   } });
   if (isLoading) return <div className="grid min-h-screen place-items-center text-muted-foreground">Carregando…</div>;
   if (!data || error) return <div className="grid min-h-screen place-items-center px-6 text-center"><div><h1 className="text-2xl font-semibold">Página indisponível</h1><p className="mt-3 text-muted-foreground">Este link não existe ou ainda não foi publicado.</p></div></div>;

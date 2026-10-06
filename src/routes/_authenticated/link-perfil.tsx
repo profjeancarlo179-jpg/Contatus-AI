@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, Copy, ExternalLink, Link2, Loader2, Plus, Save, Tra
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BioPreview } from "@/components/BioPreview";
+import { BioAppearanceEditor, BioIconPicker } from "@/components/BioAppearance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,7 +55,7 @@ function BioEditor({ initial, onSaved, onDeleted }: { initial?: Bio; onSaved: (i
     if (bio.published && !bio.links.some(l => l.enabled)) return toast.error("Adicione pelo menos um link ativo para publicar");
     setBusy(true);
     try {
-      const payload = { name: bio.name.trim(), description: bio.description, photo: bio.photo, slug: bio.slug, links: bio.links, published: bio.published };
+      const payload = { name: bio.name.trim(), description: bio.description, photo: bio.photo, slug: bio.slug, links: bio.links, published: bio.published, appearance: { ...bio.appearance } };
       const res = initial?.id ? await supabase.from("bio_pages").update(payload).eq("id", initial.id).select("id").single() : await supabase.from("bio_pages").insert(payload).select("id").single();
       if (res.error) throw res.error;
       await onSaved(res.data.id); setDirty(false); toast.success(bio.published ? "Página publicada" : "Rascunho salvo");
@@ -74,6 +75,7 @@ function BioEditor({ initial, onSaved, onDeleted }: { initial?: Bio; onSaved: (i
         <div className="space-y-2"><Label htmlFor="bio-description">Descrição</Label><Textarea id="bio-description" maxLength={500} rows={3} value={bio.description} onChange={e => change({ description: e.target.value })} /></div>
         <div className="space-y-2"><Label htmlFor="bio-slug">Endereço da página</Label><div className="flex min-w-0 items-center gap-2"><span className="shrink-0 text-sm text-muted-foreground">/b/</span><Input id="bio-slug" placeholder="sua-marca" maxLength={40} value={bio.slug} onChange={e => change({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} /></div></div>
       </section>
+      <BioAppearanceEditor value={bio.appearance} onChange={appearance => change({ appearance })} />
       <section className="space-y-4"><div className="flex items-center justify-between"><h2 className="font-semibold">Links</h2><Button variant="outline" size="sm" disabled={bio.links.length >= 30} onClick={() => change({ links: [...bio.links, { id: crypto.randomUUID(), label: "", url: "", enabled: true }] })}><Plus /> Adicionar link</Button></div>
         {bio.links.length === 0 && <p className="py-4 text-sm text-muted-foreground">Nenhum link adicionado.</p>}
         {bio.links.map((link, i) => <div key={link.id} className="space-y-3 rounded-lg border border-border bg-card p-4">
@@ -82,6 +84,7 @@ function BioEditor({ initial, onSaved, onDeleted }: { initial?: Bio; onSaved: (i
           </div>
           <Input aria-label={`Título do link ${i + 1}`} placeholder="Título do botão" maxLength={100} value={link.label} onChange={e => change({ links: bio.links.map(l => l.id === link.id ? { ...l, label: e.target.value } : l) })} />
           <Input aria-label={`Endereço do link ${i + 1}`} placeholder="https://..." type="url" value={link.url} onChange={e => change({ links: bio.links.map(l => l.id === link.id ? { ...l, url: e.target.value } : l) })} />
+          <BioIconPicker index={i + 1} value={link.icon} onChange={icon => change({ links: bio.links.map(l => l.id === link.id ? { ...l, icon } : l) })} />
         </div>)}
       </section>
       <section className="space-y-4 border-t border-border pt-6"><div className="flex items-center gap-3"><Switch id="bio-publish" checked={bio.published} onCheckedChange={published => change({ published })} /><Label htmlFor="bio-publish">Página pública</Label></div>
